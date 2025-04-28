@@ -1,4 +1,6 @@
+![free-icon-man-14439135](https://github.com/user-attachments/assets/3f7a2f1e-d1d2-439a-8e5c-f716ddc99fd0)
 #  **📦Equipment Inventory Management**
+
 
 **Equipment Inventory Management** — это приложение для управления инвентаризацией оборудования и сотрудниками, разработанное с использованием **WPF** и **Entity Framework Core**.
 
