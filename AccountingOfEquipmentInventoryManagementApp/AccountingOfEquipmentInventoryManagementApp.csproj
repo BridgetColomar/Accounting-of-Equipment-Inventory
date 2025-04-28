@@ -1,0 +1,27 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Folder Include="Control\" />
+    <Folder Include="Assets\" />
+    <Folder Include="ViewModels\Windows\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AccountingOfEquipmentInventoryManagementDbContext\AccountingOfEquipmentInventoryManagementDbContext.csproj" />
+    <ProjectReference Include="..\AccountingOfEquipmentInventoryManagementLib\AccountingOfEquipmentInventoryManagementLib.csproj" />
+  </ItemGroup>
+
+</Project>
