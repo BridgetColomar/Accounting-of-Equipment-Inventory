@@ -56,14 +56,14 @@ namespace AccountingOfEquipmentInventoryManagementApp.Views.Windows
                 Window loginWindow = null;
                 switch (employee.AccessRole)
                 {
-                    case Role.Administrator:
-                        loginWindow = _serviceProvider.GetRequiredService<AdministratorWindow>();
-                        break;
                     case Role.Operator:
                         loginWindow = _serviceProvider.GetRequiredService<OperatorWindow>();
                         break;
                     case Role.Manager:
                         loginWindow = _serviceProvider.GetRequiredService<ManagerWindow>();
+                        break;
+                    case Role.Administrator:
+                        loginWindow = _serviceProvider.GetRequiredService<AdministratorWindow>();
                         break;
                     default:
                         MessageBox.Show("Неизвестная роль пользователя.",

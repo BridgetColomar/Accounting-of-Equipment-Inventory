@@ -64,10 +64,6 @@ namespace AccountingOfEquipmentInventoryManagementApp.Views.Windows
         // Обработчик для сохранения результатов инвентаризации оператора
         private async void BtnRecordInventory_Click(object sender, RoutedEventArgs e)
         {
-            // Предполагается, что в XAML имеется:
-            // • ComboBox для выбора оборудования (Name="CmbEquipment")
-            // • ComboBox для выбора нового состояния (Name="CmbStatus")
-            // • TextBox для ввода комментария (Name="TxtNote")
             if (CmbEquipment.SelectedItem is Equipment selectedEquipment &&
                 CmbStatus.SelectedItem is ComboBoxItem statusItem &&
                 Enum.TryParse(statusItem.Tag.ToString(), out EquipmentStatus newStatus))
