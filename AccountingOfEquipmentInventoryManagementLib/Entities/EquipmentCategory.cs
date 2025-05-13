@@ -21,4 +21,5 @@ namespace AccountingOfEquipmentInventoryManagementLib.Entities
         /// </summary>
         public string Name { get; set; }
     }
+    
 }

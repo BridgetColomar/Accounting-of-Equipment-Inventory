@@ -1,70 +1,79 @@
 ﻿<Window x:Class="AccountingOfEquipmentInventoryManagementApp.Views.Windows.AdministratorWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Окно администратора" Height="600" Width="800">
-    <Grid>
-        <TabControl>
-            <!-- Вкладка "Оборудование" -->
-            <TabItem Header="Оборудование">
-                <Grid Margin="10">
-                    <DataGrid x:Name="EquipmentDataGrid"
-                              ItemsSource="{Binding Equipments}"
-                              AutoGenerateColumns="False"
-                              Margin="0,0,0,50">
-                        <DataGrid.Columns>
-                            <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="50"/>
-                            <DataGridTextColumn Header="Наименование" Binding="{Binding Name}" Width="150"/>
-                            <DataGridTextColumn Header="Серийный номер" Binding="{Binding SerialNumber}" Width="150"/>
-                            <DataGridTextColumn Header="Статус" Binding="{Binding Status}" Width="100"/>
-                            <DataGridTextColumn Header="Местоположение" Binding="{Binding Location}" Width="150"/>
-                        </DataGrid.Columns>
-                    </DataGrid>
-                    <StackPanel Orientation="Horizontal"
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Bottom"
-                                Margin="0,0,0,10">
-                        <Button Content="Добавить оборудование" Width="150" Margin="5"
-                                Click="BtnAddEquipment_Click"/>
-                        <Button Content="Редактировать" Width="120" Margin="5"
-                                Click="BtnEditEquipment_Click"/>
-                        <Button Content="Удалить оборудование" Width="150" Margin="5"
-                                Click="BtnDeleteEquipment_Click"/>
-                    </StackPanel>
-                </Grid>
-            </TabItem>
+        xmlns:sys="clr-namespace:System;assembly=mscorlib"
+        Title="Администратор - Управление сотрудниками" Height="750" Width="1225">
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <!-- Панель для добавления нового сотрудника -->
+            <RowDefinition Height="Auto"/>
+            <!-- Панель для управления: поиск, редактирование, удаление, экспорт -->
+            <RowDefinition Height="Auto"/>
+            <!-- DataGrid со списком сотрудников -->
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
 
-            <!-- Вкладка "Инвентаризация" -->
-            <TabItem Header="Инвентаризация">
-                <Grid Margin="10">
-                    <DataGrid x:Name="InventoryGrid"
-                              ItemsSource="{Binding InventoryRecords}"
-                              AutoGenerateColumns="False">
-                        <DataGrid.Columns>
-                            <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="50"/>
-                            <DataGridTextColumn Header="Оборудование" Binding="{Binding Equipment.Name}" Width="150"/>
-                            <DataGridTextColumn Header="Дата" Binding="{Binding RecordDate}" Width="150"/>
-                            <DataGridTextColumn Header="Статус" Binding="{Binding RecordedStatus}" Width="100"/>
-                            <DataGridTextColumn Header="Примечание" Binding="{Binding Note}" Width="*"/>
-                        </DataGrid.Columns>
-                    </DataGrid>
-                </Grid>
-            </TabItem>
+        <!-- Группа для добавления нового сотрудника -->
+        <GroupBox Header="Добавление нового сотрудника" Grid.Row="0" Margin="0,0,0,10">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="250"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="250"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="200"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="200"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
 
-            <!-- Вкладка "Сотрудники" -->
-            <TabItem Header="Сотрудники">
-                <Grid Margin="10">
-                    <DataGrid x:Name="EmployeeGrid"
-                              ItemsSource="{Binding Employees}"
-                              AutoGenerateColumns="False">
-                        <DataGrid.Columns>
-                            <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="50"/>
-                            <DataGridTextColumn Header="ФИО" Binding="{Binding FullName}" Width="150"/>
-                            <DataGridTextColumn Header="Логин" Binding="{Binding Username}" Width="150"/>
-                            <DataGridTextColumn Header="Роль" Binding="{Binding AccessRole}" Width="100"/>
-                        </DataGrid.Columns>
-                    </DataGrid>
-                </Grid>
-            </TabItem>
-        </TabControl>
+                <!-- ФИО сотрудника -->
+                <Label Grid.Column="0" Content="ФИО:" VerticalAlignment="Center" Margin="5"/>
+                <TextBox Grid.Column="1" x:Name="tbFullName" Margin="5"/>
+
+                <!-- Имя пользователя -->
+                <Label Grid.Column="2" Content="Имя пользователя:" VerticalAlignment="Center" Margin="5"/>
+                <TextBox Grid.Column="3" x:Name="tbUsername" Margin="5"/>
+
+                <!-- Пароль -->
+                <Label Grid.Column="4" Content="Пароль:" VerticalAlignment="Center" Margin="5"/>
+                <PasswordBox Grid.Column="5" x:Name="pbPassword" Margin="5"/>
+
+                <!-- Роль сотрудника -->
+                <Label Grid.Column="6" Content="Роль:" VerticalAlignment="Center" Margin="5"/>
+                <ComboBox Grid.Column="7" x:Name="cbAccessRole" Margin="5"/>
+            </Grid>
+        </GroupBox>
+
+        <!-- Панель для управления записями -->
+        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Left" Margin="0,0,0,10">
+            <Button x:Name="btnAddEmployee" Content="Добавить сотрудника" Width="160" Margin="5" Click="btnAddEmployee_Click"/>
+            <Button x:Name="btnEditEmployee" Content="Редактировать" Width="140" Margin="5" Click="btnEditEmployee_Click"/>
+            <Button x:Name="btnDeleteEmployee" Content="Удалить выбранных" Width="160" Margin="5" Click="btnDeleteEmployee_Click"/>
+
+            <TextBox x:Name="tbSearch" Width="250" Margin="5" VerticalAlignment="Center" 
+               ToolTip="Введите ФИО или имя пользователя для поиска"/>
+            <Button x:Name="btnSearch" Content="Поиск" Width="120" Margin="5" Click="btnSearch_Click"/>
+            <Button x:Name="btnExportCsv" Content="Экспорт в CSV" Width="160" Margin="5" Click="btnExportCsv_Click"/>
+        </StackPanel>
+
+        <!-- DataGrid для отображения сотрудников -->
+        <DataGrid x:Name="EmployeesDataGrid" Grid.Row="2" AutoGenerateColumns="False" 
+              SelectionMode="Extended" CanUserAddRows="False" IsReadOnly="True" 
+              MouseDoubleClick="EmployeesDataGrid_MouseDoubleClick">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="50"/>
+                <DataGridTextColumn Header="ФИО" Binding="{Binding FullName}" Width="250"/>
+                <DataGridTextColumn Header="Имя пользователя" Binding="{Binding Username}" Width="200"/>
+                <DataGridTextColumn Header="Роль" Binding="{Binding AccessRole}" Width="150"/>
+                <DataGridCheckBoxColumn Header="Активен" Binding="{Binding IsActive}" Width="100"/>
+                <DataGridTextColumn Header="Последняя авторизация" 
+                             Binding="{Binding LastLoginTime, StringFormat=\{0:yyyy-MM-dd HH:mm\}}" 
+                             Width="200"/>
+            </DataGrid.Columns>
+        </DataGrid>
     </Grid>
 </Window>

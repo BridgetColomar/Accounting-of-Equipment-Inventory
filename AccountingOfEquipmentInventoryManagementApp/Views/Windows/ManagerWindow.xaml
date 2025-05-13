@@ -1,43 +1,74 @@
 ﻿<Window x:Class="AccountingOfEquipmentInventoryManagementApp.Views.Windows.ManagerWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Окно менеджера" Height="600" Width="900">
+        Title="Менеджер - Управление оборудованием" Height="650" Width="1000">
     <Grid Margin="10">
-        <TabControl>
-            <!-- Вкладка сотрудников -->
-            <TabItem Header="Сотрудники">
-                <Grid Margin="10">
-                    <DataGrid x:Name="dgEmployees" AutoGenerateColumns="False" IsReadOnly="True" Margin="0,0,0,50">
-                        <DataGrid.Columns>
-                            <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="50"/>
-                            <DataGridTextColumn Header="ФИО" Binding="{Binding FullName}" Width="*"/>
-                            <DataGridTextColumn Header="Логин" Binding="{Binding Username}" Width="100"/>
-                            <DataGridTextColumn Header="Роль" Binding="{Binding AccessRole}" Width="100"/>
-                            <DataGridCheckBoxColumn Header="Активен" Binding="{Binding IsActive}" Width="80"/>
-                            <DataGridTextColumn Header="Последняя авторизация" 
-                                                 Binding="{Binding LastLoginTime, StringFormat='{}{0:dd.MM.yyyy HH:mm}'}" 
-                                                 Width="150"/>
-                        </DataGrid.Columns>
-                    </DataGrid>
-                    <Button Content="Обновить список" 
-                            HorizontalAlignment="Right" VerticalAlignment="Bottom" 
-                            Margin="10" Width="150" Click="BtnRefreshEmployees_Click"/>
-                </Grid>
-            </TabItem>
+        <Grid.RowDefinitions>
+            <!-- Группа для создания новой категории -->
+            <RowDefinition Height="Auto"/>
+            <!-- Группа для добавления оборудования -->
+            <RowDefinition Height="Auto"/>
+            <!-- Группа для формирования отчёта -->
+            <RowDefinition Height="Auto"/>
+            <!-- DataGrid для отображения списка оборудования -->
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
 
-            <!-- Вкладка отчетов -->
-            <TabItem Header="Отчёты">
-                <Grid Margin="10">
-                    <StackPanel>
-                        <TextBlock Text="Отчёт по сотрудникам:" 
-                                   FontSize="16" FontWeight="Bold" Margin="0,0,0,10"/>
-                        <Button Content="Сгенерировать отчёт" Width="200" Click="BtnGenerateReport_Click"/>
-                        <TextBox x:Name="txtReport" Margin="0,10,0,0" AcceptsReturn="True" 
-                                 VerticalScrollBarVisibility="Auto" Height="200"/>
-                    </StackPanel>
-                </Grid>
-            </TabItem>
+        <!-- Группа для добавления новой категории оборудования -->
+        <GroupBox Header="Добавление новой категории оборудования" Grid.Row="0" Margin="0,0,0,10">
+            <StackPanel Orientation="Horizontal" Margin="10">
+                <Label Content="Название категории:" VerticalAlignment="Center" Margin="5"/>
+                <TextBox x:Name="tbNewCategoryName" Width="200" Margin="5"/>
+                <Button x:Name="btnAddCategory" Content="Создать категорию" Width="160" Margin="5" Click="btnAddCategory_Click"/>
+            </StackPanel>
+        </GroupBox>
 
-        </TabControl>
+        <!-- Группа для добавления оборудования -->
+        <GroupBox Header="Добавить оборудование" Grid.Row="1" Margin="0,0,0,10">
+            <StackPanel Orientation="Vertical" Margin="10">
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                    <Label Content="Название:" Width="100" VerticalAlignment="Center"/>
+                    <TextBox x:Name="tbEquipmentName" Width="200"/>
+                </StackPanel>
+                <!-- Здесь, например, категория можно выбрать из списка уже созданных категорий -->
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                    <Label Content="Категория:" Width="100" VerticalAlignment="Center"/>
+                    <ComboBox x:Name="cbEquipmentCategory" Width="200" DisplayMemberPath="Name"/>
+                </StackPanel>
+                <Button Content="Добавить оборудование" Width="180" Click="btnAddEquipment_Click"/>
+            </StackPanel>
+        </GroupBox>
+
+        <!-- Группа для формирования отчёта по оборудованию -->
+        <GroupBox Header="Отчет по оборудованию" Grid.Row="2" Margin="0,0,0,10">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10">
+                <Label Content="Начальная дата:" VerticalAlignment="Center"/>
+                <DatePicker x:Name="dpStartDate" Width="120" Margin="5,0,10,0"/>
+
+                <Label Content="Конечная дата:" VerticalAlignment="Center"/>
+                <DatePicker x:Name="dpEndDate" Width="120" Margin="5,0,10,0"/>
+
+                <Label Content="Категория:" VerticalAlignment="Center"/>
+                <TextBox x:Name="tbCategoryFilter" Width="120" Margin="5,0,10,0"/>
+
+                <Button x:Name="btnGenerateReport" Content="Сформировать отчет" Width="140" 
+                Click="btnGenerateReport_Click" Margin="0,0,10,0"/>
+                <Button x:Name="btnExportCsv" Content="Экспорт в CSV" Width="120" 
+                Click="btnExportCsv_Click"/>
+            </StackPanel>
+        </GroupBox>
+
+        <!-- DataGrid для отображения списка оборудования -->
+        <DataGrid x:Name="ReportDataGrid" Grid.Row="3" AutoGenerateColumns="False">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="60"/>
+                <DataGridTextColumn Header="Название" Binding="{Binding Name}" Width="*"/>
+                <!-- Отображаем название категории, используя навигационное свойство Category -->
+                <DataGridTextColumn Header="Категория" Binding="{Binding Category.Name}" Width="150"/>
+                <!-- Если у вас есть свойство количества, иначе можно его удалить -->
+                <DataGridTextColumn Header="Количество" Binding="{Binding Quantity}" Width="100"/>
+                <DataGridTextColumn Header="Дата добавления" Binding="{Binding DateAdded, StringFormat=\{0:yyyy-MM-dd\}}" Width="150"/>
+            </DataGrid.Columns>
+        </DataGrid>
     </Grid>
 </Window>
