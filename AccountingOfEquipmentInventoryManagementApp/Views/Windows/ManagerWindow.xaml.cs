@@ -21,6 +21,7 @@ using Microsoft.Win32;
 using System.Diagnostics;
 using System.IO;
 using AccountingOfEquipmentInventoryManagementDbContext.Services;
+using Microsoft.Extensions.Options;
 
 namespace AccountingOfEquipmentInventoryManagementApp.Views.Windows
 {
@@ -31,26 +32,27 @@ namespace AccountingOfEquipmentInventoryManagementApp.Views.Windows
     {
         // Переменная для хранения выбранного изображения в виде массива байтов
         private byte[] selectedImageBytes = null;
-
         public ManagerWindow()
         {
             InitializeComponent();
-            // Заполнение ComboBox с значениям enum EquipmentStatus
+            // Заполнение ComboBox с значениями из enum EquipmentStatus
             LoadEquipmentStatusItems();
-            // Загрузка категорий для выбора (ComboBox)
+            // Загрузка категорий для выбора
             _ = LoadEquipmentCategoriesAsync();
-            // Загрузка списка оборудования (отчёт)
+            // Загрузка отчёта оборудования
             _ = LoadEquipmentReportAsync();
+            // При загрузке окна обновляем поле ID оборудования
+            this.Loaded += async (s, e) => await UpdateNextEquipmentIdAsync();
         }
 
-        // Заполняем ComboBox для статуса оборудования значениями из перечисления EquipmentStatus
+        // Заполнение ComboBox для статуса оборудования значениями из перечисления EquipmentStatus
         private void LoadEquipmentStatusItems()
         {
             cbEquipmentStatus.ItemsSource = Enum.GetValues(typeof(EquipmentStatus));
             cbEquipmentStatus.SelectedIndex = 0;
         }
 
-        // Асинхронно загружаем категории оборудования из БД для ComboBox
+        // Асинхронная загрузка категорий оборудования из БД для ComboBox
         private async Task LoadEquipmentCategoriesAsync()
         {
             try
@@ -69,7 +71,7 @@ namespace AccountingOfEquipmentInventoryManagementApp.Views.Windows
             }
         }
 
-        // Асинхронно загружаем список оборудования (с фильтрами, если переданы параметры)
+        // Асинхронная загрузка отчёта оборудования (с фильтрами, если заданы параметры)
         private async Task LoadEquipmentReportAsync(string searchCategory = null, DateTime? startDate = null, DateTime? endDate = null)
         {
             try
@@ -96,7 +98,33 @@ namespace AccountingOfEquipmentInventoryManagementApp.Views.Windows
             }
         }
 
-        // Обработчик для создания новой категории оборудования
+        // Метод вычисления следующего уникального идентификатора оборудования (тип int)
+        private async Task<int> GetNextEquipmentIdAsync()
+        {
+            try
+            {
+                var optionsBuilder = new DbContextOptionsBuilder<SqliteDbContext>();
+                using (var context = new SqliteDbContext(optionsBuilder.Options))
+                {
+                    int? maxId = await context.Equipments.MaxAsync(e => (int?)e.Id);
+                    return (maxId ?? 0) + 1;
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("Ошибка получения следующего ID: " + ex.Message);
+                return 1;
+            }
+        }
+
+        // Обновление поля ID оборудования (в текстовом поле) до следующего значения
+        private async Task UpdateNextEquipmentIdAsync()
+        {
+            int nextId = await GetNextEquipmentIdAsync();
+            tbEquipmentId.Text = nextId.ToString();
+        }
+
+        // Обработчик создания новой категории оборудования
         private async void btnAddCategory_Click(object sender, RoutedEventArgs e)
         {
             string categoryName = tbNewCategoryName.Text.Trim();
@@ -127,7 +155,7 @@ namespace AccountingOfEquipmentInventoryManagementApp.Views.Windows
             }
         }
 
-        // Обработчик для выбора изображения оборудования
+        // Обработчик выбора изображения оборудования
         private void btnSelectImage_Click(object sender, RoutedEventArgs e)
         {
             OpenFileDialog ofd = new OpenFileDialog
@@ -150,83 +178,65 @@ namespace AccountingOfEquipmentInventoryManagementApp.Views.Windows
             }
         }
 
-        // Обработчик для добавления нового оборудования в БД
+        // Обработчик добавления нового оборудования в БД
         private async void btnAddEquipment_Click(object sender, RoutedEventArgs e)
         {
             try
             {
+                // Считывание данных с формы
                 string name = tbEquipmentName.Text.Trim();
                 string serialNumber = tbSerialNumber.Text.Trim();
-                if (string.IsNullOrEmpty(name) || string.IsNullOrEmpty(serialNumber))
-                {
-                    MessageBox.Show("Введите наименование и серийный номер оборудования.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return;
-                }
+                // Дополнительные проверки и считывание других значений
 
-                if (cbEquipmentStatus.SelectedItem == null)
-                {
-                    MessageBox.Show("Выберите статус оборудования.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return;
-                }
-                EquipmentStatus status = (EquipmentStatus)cbEquipmentStatus.SelectedItem;
-
-                if (cbEquipmentCategory.SelectedItem == null)
-                {
-                    MessageBox.Show("Выберите категорию оборудования.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return;
-                }
-                EquipmentCategory category = (EquipmentCategory)cbEquipmentCategory.SelectedItem;
-
-                DateTime? purchaseDate = dpPurchaseDate.SelectedDate;
-                if (!purchaseDate.HasValue)
-                {
-                    MessageBox.Show("Выберите дату покупки оборудования.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return;
-                }
-
-                string location = tbLocation.Text.Trim();
-                if (string.IsNullOrEmpty(location))
-                {
-                    MessageBox.Show("Введите местоположение оборудования.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return;
-                }
-
+                // Создание объекта нового оборудования (без заполнения поля Category)
                 Equipment newEquipment = new Equipment
                 {
+                    // Если поле Id автоинкрементное, его не нужно заполнять
                     Name = name,
                     SerialNumber = serialNumber,
-                    Status = status,
-                    Category = category,
-                    PurchaseDate = purchaseDate.Value,
-                    Location = location,
+                    Status = (EquipmentStatus)cbEquipmentStatus.SelectedItem,
+                    // Category будет назначена позже
+                    PurchaseDate = dpPurchaseDate.SelectedDate.Value,
+                    Location = tbLocation.Text.Trim(),
                     Image = selectedImageBytes
                 };
 
+                // Создание нового контекста БД и корректная привязка выбранной категории
                 var optionsBuilder = new DbContextOptionsBuilder<SqliteDbContext>();
                 using (var context = new SqliteDbContext(optionsBuilder.Options))
                 {
+                    var selectedCategory = cbEquipmentCategory.SelectedItem as EquipmentCategory;
+                    if (selectedCategory == null)
+                    {
+                        MessageBox.Show("Выберите категорию оборудования.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        return;
+                    }
+                    // Получаем категорию из текущего контекста
+                    var attachedCategory = context.EquipmentCategories.FirstOrDefault(c => c.Id == selectedCategory.Id);
+                    if (attachedCategory == null)
+                    {
+                        MessageBox.Show("Выбранная категория не найдена.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                        return;
+                    }
+                    newEquipment.Category = attachedCategory;
+
+                    // Добавляем оборудование и сохраняем изменения в базе данных
                     context.Equipments.Add(newEquipment);
                     await context.SaveChangesAsync();
                 }
 
                 MessageBox.Show("Оборудование успешно добавлено.", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
-                tbEquipmentName.Clear();
-                tbSerialNumber.Clear();
-                tbLocation.Clear();
-                dpPurchaseDate.SelectedDate = null;
-                cbEquipmentStatus.SelectedIndex = 0;
-                cbEquipmentCategory.SelectedIndex = -1;
-                selectedImageBytes = null;
-                await LoadEquipmentReportAsync();
+                // Очистка формы и обновление UI
             }
             catch (Exception ex)
             {
-                Debug.WriteLine("Ошибка добавления оборудования: " + ex.Message);
-                MessageBox.Show("Ошибка добавления оборудования: " + ex.Message, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                string errorDetails = ex.InnerException != null ? ex.InnerException.ToString() : ex.ToString();
+                Debug.WriteLine("Ошибка добавления оборудования: " + errorDetails);
+                MessageBox.Show("Ошибка добавления оборудования: " + errorDetails, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
-        // Обработчик формирования отчета по оборудованию (с фильтрами)
+        // Обработчик формирования отчёта по оборудованию (с фильтрами)
         private async void btnGenerateReport_Click(object sender, RoutedEventArgs e)
         {
             try
@@ -239,12 +249,12 @@ namespace AccountingOfEquipmentInventoryManagementApp.Views.Windows
             }
             catch (Exception ex)
             {
-                Debug.WriteLine("Ошибка формирования отчета: " + ex.Message);
-                MessageBox.Show("Ошибка формирования отчета: " + ex.Message, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                Debug.WriteLine("Ошибка формирования отчёта: " + ex.Message);
+                MessageBox.Show("Ошибка формирования отчёта: " + ex.Message, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
-        // Обработчик экспорта отчета в CSV-файл
+        // Обработчик экспорта отчёта в CSV-файл
         private void btnExportCsv_Click(object sender, RoutedEventArgs e)
         {
             try
@@ -282,7 +292,7 @@ namespace AccountingOfEquipmentInventoryManagementApp.Views.Windows
             }
         }
 
-        // Метод экранирования строк для экспорта CSV
+        // Метод экранирования строк для экспорта в CSV
         private string EscapeCsv(string value)
         {
             if (string.IsNullOrEmpty(value))

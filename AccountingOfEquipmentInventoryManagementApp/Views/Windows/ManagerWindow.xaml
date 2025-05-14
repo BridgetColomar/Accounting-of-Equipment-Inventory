@@ -4,17 +4,17 @@
         Title="Менеджер - Управление оборудованием" Height="750" Width="1100">
     <Grid Margin="10">
         <Grid.RowDefinitions>
-            <!-- Группа для создания новой категории -->
+            <!-- 1. Группа для создания новой категории -->
             <RowDefinition Height="Auto" />
-            <!-- Группа для добавления нового оборудования -->
+            <!-- 2. Группа для добавления нового оборудования -->
             <RowDefinition Height="Auto" />
-            <!-- Группа для формирования отчёта -->
+            <!-- 3. Группа для формирования отчёта -->
             <RowDefinition Height="Auto" />
-            <!-- DataGrid для отображения оборудования -->
+            <!-- 4. DataGrid для отображения оборудования -->
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <!-- 1. Группа для создания новой категории -->
+        <!-- 1. Группа для создания новой категории оборудования -->
         <GroupBox Header="Добавление новой категории оборудования" Grid.Row="0" Margin="0,0,0,10">
             <StackPanel Orientation="Horizontal" Margin="10">
                 <Label Content="Название категории:" VerticalAlignment="Center" Margin="5"/>
@@ -33,46 +33,52 @@
                     <ColumnDefinition Width="250"/>
                 </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
+                    <!-- Ряд для ID (автозаполнение) -->
                     <RowDefinition Height="Auto"/>
-                    <!-- Наименование и серийный номер -->
+                    <!-- Ряд для Наименования и Серийного номера -->
                     <RowDefinition Height="Auto"/>
-                    <!-- Статус и категория -->
+                    <!-- Ряд для Статуса и Категории -->
                     <RowDefinition Height="Auto"/>
-                    <!-- Дата покупки -->
+                    <!-- Ряд для Даты покупки -->
                     <RowDefinition Height="Auto"/>
-                    <!-- Местоположение -->
+                    <!-- Ряд для Местоположения -->
                     <RowDefinition Height="Auto"/>
-                    <!-- Изображение -->
+                    <!-- Ряд для Изображения -->
                     <RowDefinition Height="Auto"/>
-                    <!-- Кнопка добавления -->
+                    <!-- Ряд для кнопки добавления -->
+                    <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
+                <!-- Ряд 0: ID оборудования (только для чтения) -->
+                <Label Grid.Row="0" Grid.Column="0" Content="ID оборудования:" Margin="5" VerticalAlignment="Center"/>
+                <TextBox x:Name="tbEquipmentId" Grid.Row="0" Grid.Column="1" Margin="5" IsReadOnly="True"/>
+
                 <!-- Ряд 1: Наименование и Серийный номер -->
-                <Label Grid.Row="0" Grid.Column="0" Content="Наименование:" Margin="5" VerticalAlignment="Center"/>
-                <TextBox x:Name="tbEquipmentName" Grid.Row="0" Grid.Column="1" Margin="5"/>
-                <Label Grid.Row="0" Grid.Column="2" Content="Серийный номер:" Margin="5" VerticalAlignment="Center"/>
-                <TextBox x:Name="tbSerialNumber" Grid.Row="0" Grid.Column="3" Margin="5"/>
+                <Label Grid.Row="1" Grid.Column="0" Content="Наименование:" Margin="5" VerticalAlignment="Center"/>
+                <TextBox x:Name="tbEquipmentName" Grid.Row="1" Grid.Column="1" Margin="5"/>
+                <Label Grid.Row="1" Grid.Column="2" Content="Серийный номер:" Margin="5" VerticalAlignment="Center"/>
+                <TextBox x:Name="tbSerialNumber" Grid.Row="1" Grid.Column="3" Margin="5"/>
 
                 <!-- Ряд 2: Статус и Категория -->
-                <Label Grid.Row="1" Grid.Column="0" Content="Статус:" Margin="5" VerticalAlignment="Center"/>
-                <ComboBox x:Name="cbEquipmentStatus" Grid.Row="1" Grid.Column="1" Margin="5"/>
-                <Label Grid.Row="1" Grid.Column="2" Content="Категория:" Margin="5" VerticalAlignment="Center"/>
-                <ComboBox x:Name="cbEquipmentCategory" Grid.Row="1" Grid.Column="3" Margin="5" DisplayMemberPath="Name"/>
+                <Label Grid.Row="2" Grid.Column="0" Content="Статус:" Margin="5" VerticalAlignment="Center"/>
+                <ComboBox x:Name="cbEquipmentStatus" Grid.Row="2" Grid.Column="1" Margin="5"/>
+                <Label Grid.Row="2" Grid.Column="2" Content="Категория:" Margin="5" VerticalAlignment="Center"/>
+                <ComboBox x:Name="cbEquipmentCategory" Grid.Row="2" Grid.Column="3" Margin="5" DisplayMemberPath="Name"/>
 
                 <!-- Ряд 3: Дата покупки -->
-                <Label Grid.Row="2" Grid.Column="0" Content="Дата покупки:" Margin="5" VerticalAlignment="Center"/>
-                <DatePicker x:Name="dpPurchaseDate" Grid.Row="2" Grid.Column="1" Margin="5"/>
+                <Label Grid.Row="3" Grid.Column="0" Content="Дата покупки:" Margin="5" VerticalAlignment="Center"/>
+                <DatePicker x:Name="dpPurchaseDate" Grid.Row="3" Grid.Column="1" Margin="5"/>
 
                 <!-- Ряд 4: Местоположение -->
-                <Label Grid.Row="3" Grid.Column="0" Content="Местоположение:" Margin="5" VerticalAlignment="Center"/>
-                <TextBox x:Name="tbLocation" Grid.Row="3" Grid.Column="1" Margin="5"/>
+                <Label Grid.Row="4" Grid.Column="0" Content="Местоположение:" Margin="5" VerticalAlignment="Center"/>
+                <TextBox x:Name="tbLocation" Grid.Row="4" Grid.Column="1" Margin="5"/>
 
                 <!-- Ряд 5: Изображение оборудования -->
-                <Label Grid.Row="4" Grid.Column="0" Content="Изображение:" Margin="5" VerticalAlignment="Center"/>
-                <Button x:Name="btnSelectImage" Grid.Row="4" Grid.Column="1" Content="Выбрать изображение" Margin="5" Click="btnSelectImage_Click"/>
+                <Label Grid.Row="5" Grid.Column="0" Content="Изображение:" Margin="5" VerticalAlignment="Center"/>
+                <Button x:Name="btnSelectImage" Grid.Row="5" Grid.Column="1" Content="Выбрать изображение" Margin="5" Click="btnSelectImage_Click"/>
 
                 <!-- Ряд 6: Кнопка добавления оборудования -->
-                <Button Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="4" Content="Добавить оборудование" Margin="10" HorizontalAlignment="Center"
+                <Button Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="4" Content="Добавить оборудование" Margin="10" HorizontalAlignment="Center"
                 Click="btnAddEquipment_Click"/>
             </Grid>
         </GroupBox>

@@ -48,7 +48,7 @@ namespace AccountingOfEquipmentInventoryManagementApp
 
             // Загрузка окна авторизации
             var loginWindow = AppHost.Services.GetRequiredService<LoginWindow>();
-            loginWindow.Show();
+            //loginWindow.Show();
         }
 
         protected override async void OnExit(ExitEventArgs e)

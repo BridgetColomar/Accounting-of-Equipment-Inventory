@@ -14,7 +14,7 @@ namespace AccountingOfEquipmentInventoryManagementLib.Entities
         /// <summary>
         /// Уникальный идентификатор оборудования.
         /// </summary>
-        public int Id { get; set; }
+        public int Id  { get; set; }
 
         /// <summary>
         /// Наименование оборудования.
