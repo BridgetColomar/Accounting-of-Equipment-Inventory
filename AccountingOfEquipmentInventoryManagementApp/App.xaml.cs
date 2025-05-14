@@ -59,5 +59,3 @@ namespace AccountingOfEquipmentInventoryManagementApp
         }
     }
 }
-
-//23.04 не работает Менеджер 

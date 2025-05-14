@@ -22,6 +22,10 @@ using System.Diagnostics;
 using System.IO;
 using AccountingOfEquipmentInventoryManagementDbContext.Services;
 using Microsoft.Extensions.Options;
+using System.Reflection.Metadata;
+using ClosedXML.Excel;         // Для экспорта в XLSX (ClosedXML)
+using iTextSharp.text;         // Для экспорта в PDF (iTextSharp)
+using iTextSharp.text.pdf;     // Для экспорта в PDF (iTextSharp)
 
 namespace AccountingOfEquipmentInventoryManagementApp.Views.Windows
 {
@@ -254,7 +258,7 @@ namespace AccountingOfEquipmentInventoryManagementApp.Views.Windows
             }
         }
 
-        // Обработчик экспорта отчёта в CSV-файл
+        // Обработчик экспорта отчёта в CSV|TXT|PDF
         private void btnExportCsv_Click(object sender, RoutedEventArgs e)
         {
             try
@@ -266,29 +270,106 @@ namespace AccountingOfEquipmentInventoryManagementApp.Views.Windows
                     return;
                 }
 
-                var sfd = new SaveFileDialog
-                {
-                    Filter = "CSV файлы (*.csv)|*.csv|Все файлы (*.*)|*.*",
-                    FileName = "EquipmentReport.csv"
-                };
-
+                SaveFileDialog sfd = new SaveFileDialog();
+                // Фильтр для выбора формата
+                sfd.Filter = "CSV файлы (*.csv)|*.csv|TXT файлы (*.txt)|*.txt|Excel файлы (*.xlsx)|*.xlsx|PDF файлы (*.pdf)|*.pdf";
+                sfd.FileName = "EquipmentReport";
                 if (sfd.ShowDialog() == true)
                 {
-                    using (var sw = new StreamWriter(sfd.FileName))
+                    // Используем полностью квалифицированное имя для Path
+                    string extension = System.IO.Path.GetExtension(sfd.FileName).ToLower();
+
+                    if (extension == ".csv")
                     {
-                        sw.WriteLine("Id,Name,SerialNumber,Status,Category,PurchaseDate,Location");
-                        foreach (var item in reportData)
+                        using (StreamWriter sw = new StreamWriter(sfd.FileName))
                         {
-                            sw.WriteLine($"{item.Id},{EscapeCsv(item.Name)},{EscapeCsv(item.SerialNumber)},{item.Status},{EscapeCsv(item.Category.Name)},{item.PurchaseDate:yyyy-MM-dd HH:mm:ss},{EscapeCsv(item.Location)}");
+                            sw.WriteLine("Id,Name,SerialNumber,Status,Category,PurchaseDate,Location");
+                            foreach (var item in reportData)
+                            {
+                                sw.WriteLine($"{item.Id},{EscapeCsv(item.Name)},{EscapeCsv(item.SerialNumber)},{item.Status},{EscapeCsv(item.Category.Name)},{item.PurchaseDate:dd.MM.yyyy},{EscapeCsv(item.Location)}");
+                            }
                         }
                     }
+                    else if (extension == ".txt")
+                    {
+                        // Экспорт в TXT с табуляцией как разделителем
+                        using (StreamWriter sw = new StreamWriter(sfd.FileName))
+                        {
+                            sw.WriteLine("Id\tName\tSerialNumber\tStatus\tCategory\tPurchaseDate\tLocation");
+                            foreach (var item in reportData)
+                            {
+                                sw.WriteLine($"{item.Id}\t{item.Name}\t{item.SerialNumber}\t{item.Status}\t{item.Category.Name}\t{item.PurchaseDate:dd.MM.yyyy}\t{item.Location}");
+                            }
+                        }
+                    }
+                    else if (extension == ".xlsx")
+                    {
+                        // Экспорт в Excel (XLSX) с использованием ClosedXML
+                        var workbook = new ClosedXML.Excel.XLWorkbook();
+                        var worksheet = workbook.Worksheets.Add("EquipmentReport");
+                        // Заголовки
+                        worksheet.Cell(1, 1).Value = "Id";
+                        worksheet.Cell(1, 2).Value = "Name";
+                        worksheet.Cell(1, 3).Value = "SerialNumber";
+                        worksheet.Cell(1, 4).Value = "Status";
+                        worksheet.Cell(1, 5).Value = "Category";
+                        worksheet.Cell(1, 6).Value = "PurchaseDate";
+                        worksheet.Cell(1, 7).Value = "Location";
+
+                        int row = 2;
+                        foreach (var item in reportData)
+                        {
+                            worksheet.Cell(row, 1).Value = item.Id;
+                            worksheet.Cell(row, 2).Value = item.Name;
+                            worksheet.Cell(row, 3).Value = item.SerialNumber;
+                            worksheet.Cell(row, 4).Value = item.Status.ToString();
+                            worksheet.Cell(row, 5).Value = item.Category?.Name;
+                            worksheet.Cell(row, 6).Value = item.PurchaseDate.ToString("dd.MM.yyyy");
+                            worksheet.Cell(row, 7).Value = item.Location;
+                            row++;
+                        }
+                        workbook.SaveAs(sfd.FileName);
+                    }
+                    else if (extension == ".pdf")
+                    {
+                        // Экспорт в PDF с использованием iTextSharp
+                        iTextSharp.text.Document pdfDoc = new iTextSharp.text.Document(iTextSharp.text.PageSize.A4, 10, 10, 10, 10);
+                        iTextSharp.text.pdf.PdfWriter.GetInstance(pdfDoc, new FileStream(sfd.FileName, FileMode.Create));
+                        pdfDoc.Open();
+
+                        // Создаем таблицу с 7 столбцами
+                        iTextSharp.text.pdf.PdfPTable table = new iTextSharp.text.pdf.PdfPTable(7);
+                        // Заголовки таблицы
+                        table.AddCell("Id");
+                        table.AddCell("Name");
+                        table.AddCell("SerialNumber");
+                        table.AddCell("Status");
+                        table.AddCell("Category");
+                        table.AddCell("PurchaseDate");
+                        table.AddCell("Location");
+
+                        foreach (var item in reportData)
+                        {
+                            table.AddCell(item.Id.ToString());
+                            table.AddCell(item.Name);
+                            table.AddCell(item.SerialNumber);
+                            table.AddCell(item.Status.ToString());
+                            table.AddCell(item.Category?.Name);
+                            table.AddCell(item.PurchaseDate.ToString("dd.MM.yyyy"));
+                            table.AddCell(item.Location);
+                        }
+
+                        pdfDoc.Add(table);
+                        pdfDoc.Close();
+                    }
+
                     MessageBox.Show("Экспорт завершён успешно.", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
             }
             catch (Exception ex)
             {
-                Debug.WriteLine("Ошибка экспорта CSV: " + ex.Message);
-                MessageBox.Show("Ошибка экспорта CSV: " + ex.Message, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                Debug.WriteLine("Ошибка экспорта: " + ex.Message);
+                MessageBox.Show("Ошибка экспорта: " + ex.Message, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
