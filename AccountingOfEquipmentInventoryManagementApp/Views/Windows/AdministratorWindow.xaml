@@ -57,7 +57,7 @@
             <TextBox x:Name="tbSearch" Width="250" Margin="5" VerticalAlignment="Center" 
                ToolTip="Введите ФИО или имя пользователя для поиска"/>
             <Button x:Name="btnSearch" Content="Поиск" Width="120" Margin="5" Click="btnSearch_Click"/>
-            <Button x:Name="btnExportCsv" Content="Экспорт в CSV" Width="160" Margin="5" Click="btnExportCsv_Click"/>
+            <Button x:Name="btnExportCsv" Content="Экспорт" Width="160" Margin="5" Click="btnExportCsv_Click"/>
         </StackPanel>
 
         <!-- DataGrid для отображения сотрудников -->

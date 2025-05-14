@@ -9,9 +9,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Folder Include="Assets\Styles\Controls\" />
+    <Folder Include="Assets\Images\" />
+    <Folder Include="Assets\Styles\Elements\" />
     <Folder Include="Control\" />
-    <Folder Include="Assets\" />
     <Folder Include="ViewModels\Windows\" />
+    <Folder Include="ViewModels\" />
+    <Folder Include="Control\" />
   </ItemGroup>
 
   <ItemGroup>
