@@ -215,41 +215,112 @@ namespace AccountingOfEquipmentInventoryManagementApp.Views.Windows
                     return;
                 }
 
+                // Фильтр для выбора формата: CSV, TXT, XLSX, PDF
                 var sfd = new SaveFileDialog
                 {
-                    Filter = "CSV файлы (*.csv)|*.csv|Все файлы (*.*)|*.*",
-                    FileName = "EmployeesReport.csv"
+                    Filter = "CSV файлы (*.csv)|*.csv|TXT файлы (*.txt)|*.txt|Excel файлы (*.xlsx)|*.xlsx|PDF файлы (*.pdf)|*.pdf",
+                    FileName = "EmployeesReport"
                 };
 
                 if (sfd.ShowDialog() == true)
                 {
-                    using (var sw = new StreamWriter(sfd.FileName))
+                    // Используем полное имя для Path, чтобы избежать неоднозначности
+                    string extension = System.IO.Path.GetExtension(sfd.FileName).ToLower();
+
+                    if (extension == ".csv")
                     {
-                        sw.WriteLine("Id,FullName,Username,AccessRole,IsActive,LastLoginTime");
-                        foreach (var emp in employees)
+                        using (var sw = new StreamWriter(sfd.FileName))
                         {
-                            // Если LastLoginTime равен null, можно экспортировать пустую строку
-                            string lastLogin = emp.LastLoginTime.HasValue ? emp.LastLoginTime.Value.ToString("yyyy-MM-dd HH:mm") : "";
-                            sw.WriteLine($"{emp.Id},{EscapeCsv(emp.FullName)},{EscapeCsv(emp.Username)},{emp.AccessRole},{emp.IsActive},{lastLogin}");
+                            sw.WriteLine("Id,FullName,Username,AccessRole,IsActive,LastLoginTime");
+                            foreach (var emp in employees)
+                            {
+                                string lastLogin = emp.LastLoginTime.HasValue ? emp.LastLoginTime.Value.ToString("dd.MM.yyyy HH:mm") : "";
+                                sw.WriteLine($"{emp.Id},{EscapeCsv(emp.FullName)},{EscapeCsv(emp.Username)},{emp.AccessRole},{emp.IsActive},{lastLogin}");
+                            }
                         }
                     }
+                    else if (extension == ".txt")
+                    {
+                        using (var sw = new StreamWriter(sfd.FileName))
+                        {
+                            sw.WriteLine("Id\tFullName\tUsername\tAccessRole\tIsActive\tLastLoginTime");
+                            foreach (var emp in employees)
+                            {
+                                string lastLogin = emp.LastLoginTime.HasValue ? emp.LastLoginTime.Value.ToString("dd.MM.yyyy HH:mm") : "";
+                                sw.WriteLine($"{emp.Id}\t{emp.FullName}\t{emp.Username}\t{emp.AccessRole}\t{emp.IsActive}\t{lastLogin}");
+                            }
+                        }
+                    }
+                    else if (extension == ".xlsx")
+                    {
+                        var workbook = new ClosedXML.Excel.XLWorkbook();
+                        var worksheet = workbook.Worksheets.Add("EmployeesReport");
+
+                        // Заголовки
+                        worksheet.Cell(1, 1).Value = "Id";
+                        worksheet.Cell(1, 2).Value = "FullName";
+                        worksheet.Cell(1, 3).Value = "Username";
+                        worksheet.Cell(1, 4).Value = "AccessRole";
+                        worksheet.Cell(1, 5).Value = "IsActive";
+                        worksheet.Cell(1, 6).Value = "LastLoginTime";
+
+                        int row = 2;
+                        foreach (var emp in employees)
+                        {
+                            worksheet.Cell(row, 1).Value = emp.Id;
+                            worksheet.Cell(row, 2).Value = emp.FullName;
+                            worksheet.Cell(row, 3).Value = emp.Username;
+                            worksheet.Cell(row, 4).Value = emp.AccessRole.ToString();
+                            worksheet.Cell(row, 5).Value = emp.IsActive ? "True" : "False";
+                            string lastLogin = emp.LastLoginTime.HasValue ? emp.LastLoginTime.Value.ToString("dd.MM.yyyy HH:mm") : "";
+                            worksheet.Cell(row, 6).Value = lastLogin;
+                            row++;
+                        }
+                        workbook.SaveAs(sfd.FileName);
+                    }
+                    else if (extension == ".pdf")
+                    {
+                        // Создаем PDF с помощью iTextSharp
+                        iTextSharp.text.Document pdfDoc = new iTextSharp.text.Document(iTextSharp.text.PageSize.A4, 10, 10, 10, 10);
+                        iTextSharp.text.pdf.PdfWriter.GetInstance(pdfDoc, new FileStream(sfd.FileName, FileMode.Create));
+                        pdfDoc.Open();
+
+                        // Создаем таблицу с 6 столбцами
+                        iTextSharp.text.pdf.PdfPTable table = new iTextSharp.text.pdf.PdfPTable(6);
+                        // Заголовки таблицы
+                        table.AddCell("Id");
+                        table.AddCell("FullName");
+                        table.AddCell("Username");
+                        table.AddCell("AccessRole");
+                        table.AddCell("IsActive");
+                        table.AddCell("LastLoginTime");
+
+                        foreach (var emp in employees)
+                        {
+                            table.AddCell(emp.Id.ToString());
+                            table.AddCell(emp.FullName);
+                            table.AddCell(emp.Username);
+                            table.AddCell(emp.AccessRole.ToString());
+                            table.AddCell(emp.IsActive.ToString());
+                            string lastLogin = emp.LastLoginTime.HasValue ? emp.LastLoginTime.Value.ToString("dd.MM.yyyy HH:mm") : "";
+                            table.AddCell(lastLogin);
+                        }
+
+                        pdfDoc.Add(table);
+                        pdfDoc.Close();
+                    }
+
                     MessageBox.Show("Экспорт завершен успешно.", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
             }
             catch (Exception ex)
             {
-                Debug.WriteLine("Ошибка экспорта CSV: " + ex.Message);
-                MessageBox.Show("Ошибка экспорта CSV: " + ex.Message, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                Debug.WriteLine("Ошибка экспорта : " + ex.Message);
+                MessageBox.Show("Ошибка экспорта : " + ex.Message, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
-        // Обработчик двойного клика по DataGrid для редактирования
-        private void EmployeesDataGrid_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
-        {
-            btnEditEmployee_Click(sender, e);
-        }
-
-        // Метод для экранирования спецсимволов при экспорте в CSV
+        // Вспомогательный метод экранирования строк для CSV
         private string EscapeCsv(string value)
         {
             if (string.IsNullOrEmpty(value))
@@ -258,6 +329,13 @@ namespace AccountingOfEquipmentInventoryManagementApp.Views.Windows
                 return $"\"{value.Replace("\"", "\"\"")}\"";
             return value;
         }
+
+        // Обработчик двойного клика по DataGrid для редактирования
+        private void EmployeesDataGrid_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            btnEditEmployee_Click(sender, e);
+        }
+       
 
         // Метод для вычисления SHA256-хэша строки (например, для пароля)
         private string ComputeSha256Hash(string rawData)

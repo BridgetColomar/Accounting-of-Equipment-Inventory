@@ -71,7 +71,7 @@
                 <DataGridTextColumn Header="Роль" Binding="{Binding AccessRole}" Width="150"/>
                 <DataGridCheckBoxColumn Header="Активен" Binding="{Binding IsActive}" Width="100"/>
                 <DataGridTextColumn Header="Последняя авторизация" 
-                             Binding="{Binding LastLoginTime, StringFormat=\{0:yyyy-MM-dd HH:mm\}}" 
+                             Binding="{Binding LastLoginTime, StringFormat=\{0:dd.MM.yyyy HH:mm\}}" 
                              Width="200"/>
             </DataGrid.Columns>
         </DataGrid>

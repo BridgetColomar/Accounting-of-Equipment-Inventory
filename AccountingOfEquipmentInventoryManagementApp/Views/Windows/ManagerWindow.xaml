@@ -69,9 +69,9 @@
                 <Label Grid.Row="3" Grid.Column="0" Content="Дата покупки:" Margin="5" VerticalAlignment="Center"/>
                 <DatePicker x:Name="dpPurchaseDate" Grid.Row="3" Grid.Column="1" Margin="5"/>
 
-                <!-- Ряд 4: Местоположение -->
+                <!-- Ряд 4: Местоположение (заменено на ComboBox) -->
                 <Label Grid.Row="4" Grid.Column="0" Content="Местоположение:" Margin="5" VerticalAlignment="Center"/>
-                <TextBox x:Name="tbLocation" Grid.Row="4" Grid.Column="1" Margin="5"/>
+                <ComboBox x:Name="cbLocation" Grid.Row="4" Grid.Column="1" Margin="5"/>
 
                 <!-- Ряд 5: Изображение оборудования -->
                 <Label Grid.Row="5" Grid.Column="0" Content="Изображение:" Margin="5" VerticalAlignment="Center"/>

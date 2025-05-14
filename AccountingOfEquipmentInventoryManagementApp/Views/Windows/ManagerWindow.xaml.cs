@@ -36,6 +36,7 @@ namespace AccountingOfEquipmentInventoryManagementApp.Views.Windows
     {
         // Переменная для хранения выбранного изображения в виде массива байтов
         private byte[] selectedImageBytes = null;
+
         public ManagerWindow()
         {
             InitializeComponent();
@@ -47,13 +48,30 @@ namespace AccountingOfEquipmentInventoryManagementApp.Views.Windows
             _ = LoadEquipmentReportAsync();
             // При загрузке окна обновляем поле ID оборудования
             this.Loaded += async (s, e) => await UpdateNextEquipmentIdAsync();
+            // Заполняем список местоположений (например, офисных)
+            LoadLocations();
         }
 
-        // Заполнение ComboBox для статуса оборудования значениями из перечисления EquipmentStatus
+        // Заполнение ComboBox для статуса оборудования
         private void LoadEquipmentStatusItems()
         {
             cbEquipmentStatus.ItemsSource = Enum.GetValues(typeof(EquipmentStatus));
             cbEquipmentStatus.SelectedIndex = 0;
+        }
+
+        // Заполнение списка предопределённых местоположений
+        private void LoadLocations()
+        {
+            List<string> locations = new List<string>
+            {
+                "Головной офис",
+                "Офис 101",
+                "Офис 102",
+                "Склад",
+                "Филиал"
+            };
+            cbLocation.ItemsSource = locations;
+            cbLocation.SelectedIndex = 0;
         }
 
         // Асинхронная загрузка категорий оборудования из БД для ComboBox
@@ -187,50 +205,97 @@ namespace AccountingOfEquipmentInventoryManagementApp.Views.Windows
         {
             try
             {
-                // Считывание данных с формы
+                // Читаем предзаполненное значение ID
+                if (!int.TryParse(tbEquipmentId.Text, out int id))
+                {
+                    MessageBox.Show("Некорректное значение ID оборудования.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
                 string name = tbEquipmentName.Text.Trim();
                 string serialNumber = tbSerialNumber.Text.Trim();
-                // Дополнительные проверки и считывание других значений
+                if (string.IsNullOrEmpty(name) || string.IsNullOrEmpty(serialNumber))
+                {
+                    MessageBox.Show("Введите наименование и серийный номер оборудования.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
 
-                // Создание объекта нового оборудования (без заполнения поля Category)
+                if (cbEquipmentStatus.SelectedItem == null)
+                {
+                    MessageBox.Show("Выберите статус оборудования.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+                EquipmentStatus status = (EquipmentStatus)cbEquipmentStatus.SelectedItem;
+
+                if (cbEquipmentCategory.SelectedItem == null)
+                {
+                    MessageBox.Show("Выберите категорию оборудования.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+                EquipmentCategory category = (EquipmentCategory)cbEquipmentCategory.SelectedItem;
+
+                DateTime? purchaseDate = dpPurchaseDate.SelectedDate;
+                if (!purchaseDate.HasValue)
+                {
+                    MessageBox.Show("Выберите дату покупки оборудования.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
+                // Чтение выбранного местоположения из ComboBox
+                if (cbLocation.SelectedItem == null)
+                {
+                    MessageBox.Show("Выберите местоположение оборудования.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+                string location = cbLocation.SelectedItem.ToString();
+
                 Equipment newEquipment = new Equipment
                 {
-                    // Если поле Id автоинкрементное, его не нужно заполнять
+                    // Присваиваем вычисленный ID
+                    Id = id,
                     Name = name,
                     SerialNumber = serialNumber,
-                    Status = (EquipmentStatus)cbEquipmentStatus.SelectedItem,
-                    // Category будет назначена позже
-                    PurchaseDate = dpPurchaseDate.SelectedDate.Value,
-                    Location = tbLocation.Text.Trim(),
+                    Status = status,
+                    // Категория будет перепривязана внутри using-блока ниже
+                    PurchaseDate = purchaseDate.Value,
+                    Location = location,
                     Image = selectedImageBytes
                 };
 
-                // Создание нового контекста БД и корректная привязка выбранной категории
                 var optionsBuilder = new DbContextOptionsBuilder<SqliteDbContext>();
                 using (var context = new SqliteDbContext(optionsBuilder.Options))
                 {
+                    // Привязываем выбранную категорию к текущему контексту
                     var selectedCategory = cbEquipmentCategory.SelectedItem as EquipmentCategory;
                     if (selectedCategory == null)
                     {
                         MessageBox.Show("Выберите категорию оборудования.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
                         return;
                     }
-                    // Получаем категорию из текущего контекста
                     var attachedCategory = context.EquipmentCategories.FirstOrDefault(c => c.Id == selectedCategory.Id);
                     if (attachedCategory == null)
                     {
-                        MessageBox.Show("Выбранная категория не найдена.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                        MessageBox.Show("Выбранная категория не найдена в базе данных.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
                         return;
                     }
                     newEquipment.Category = attachedCategory;
 
-                    // Добавляем оборудование и сохраняем изменения в базе данных
+                    // Если используется автоинкремент, не задавайте Id вручную
                     context.Equipments.Add(newEquipment);
                     await context.SaveChangesAsync();
                 }
 
                 MessageBox.Show("Оборудование успешно добавлено.", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
-                // Очистка формы и обновление UI
+                // Обновляем поле ID до следующего значения
+                await UpdateNextEquipmentIdAsync();
+                tbEquipmentName.Clear();
+                tbSerialNumber.Clear();
+                dpPurchaseDate.SelectedDate = null;
+                cbEquipmentStatus.SelectedIndex = 0;
+                cbEquipmentCategory.SelectedIndex = -1;
+                cbLocation.SelectedIndex = 0;
+                selectedImageBytes = null;
+                // Обновляем DataGrid со списком оборудования
+                await LoadEquipmentReportAsync();
             }
             catch (Exception ex)
             {
@@ -258,7 +323,7 @@ namespace AccountingOfEquipmentInventoryManagementApp.Views.Windows
             }
         }
 
-        // Обработчик экспорта отчёта в CSV|TXT|PDF
+        // Обработчик экспорта отчёта в файл (с выбором формата)
         private void btnExportCsv_Click(object sender, RoutedEventArgs e)
         {
             try
@@ -270,13 +335,14 @@ namespace AccountingOfEquipmentInventoryManagementApp.Views.Windows
                     return;
                 }
 
-                SaveFileDialog sfd = new SaveFileDialog();
-                // Фильтр для выбора формата
-                sfd.Filter = "CSV файлы (*.csv)|*.csv|TXT файлы (*.txt)|*.txt|Excel файлы (*.xlsx)|*.xlsx|PDF файлы (*.pdf)|*.pdf";
-                sfd.FileName = "EquipmentReport";
+                SaveFileDialog sfd = new SaveFileDialog
+                {
+                    // Фильтр для выбора формата
+                    Filter = "CSV файлы (*.csv)|*.csv|TXT файлы (*.txt)|*.txt|Excel файлы (*.xlsx)|*.xlsx|PDF файлы (*.pdf)|*.pdf",
+                    FileName = "EquipmentReport"
+                };
                 if (sfd.ShowDialog() == true)
                 {
-                    // Используем полностью квалифицированное имя для Path
                     string extension = System.IO.Path.GetExtension(sfd.FileName).ToLower();
 
                     if (extension == ".csv")
@@ -292,7 +358,6 @@ namespace AccountingOfEquipmentInventoryManagementApp.Views.Windows
                     }
                     else if (extension == ".txt")
                     {
-                        // Экспорт в TXT с табуляцией как разделителем
                         using (StreamWriter sw = new StreamWriter(sfd.FileName))
                         {
                             sw.WriteLine("Id\tName\tSerialNumber\tStatus\tCategory\tPurchaseDate\tLocation");
@@ -304,10 +369,8 @@ namespace AccountingOfEquipmentInventoryManagementApp.Views.Windows
                     }
                     else if (extension == ".xlsx")
                     {
-                        // Экспорт в Excel (XLSX) с использованием ClosedXML
                         var workbook = new ClosedXML.Excel.XLWorkbook();
                         var worksheet = workbook.Worksheets.Add("EquipmentReport");
-                        // Заголовки
                         worksheet.Cell(1, 1).Value = "Id";
                         worksheet.Cell(1, 2).Value = "Name";
                         worksheet.Cell(1, 3).Value = "SerialNumber";
@@ -332,14 +395,11 @@ namespace AccountingOfEquipmentInventoryManagementApp.Views.Windows
                     }
                     else if (extension == ".pdf")
                     {
-                        // Экспорт в PDF с использованием iTextSharp
                         iTextSharp.text.Document pdfDoc = new iTextSharp.text.Document(iTextSharp.text.PageSize.A4, 10, 10, 10, 10);
                         iTextSharp.text.pdf.PdfWriter.GetInstance(pdfDoc, new FileStream(sfd.FileName, FileMode.Create));
                         pdfDoc.Open();
 
-                        // Создаем таблицу с 7 столбцами
                         iTextSharp.text.pdf.PdfPTable table = new iTextSharp.text.pdf.PdfPTable(7);
-                        // Заголовки таблицы
                         table.AddCell("Id");
                         table.AddCell("Name");
                         table.AddCell("SerialNumber");
