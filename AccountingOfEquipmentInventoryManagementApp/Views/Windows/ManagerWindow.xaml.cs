@@ -84,6 +84,9 @@ namespace AccountingOfEquipmentInventoryManagementApp.Views.Windows
                 {
                     var categories = await context.EquipmentCategories.ToListAsync();
                     cbEquipmentCategory.ItemsSource = categories;
+                    cbCategoryFilter.ItemsSource = categories; 
+                                                               
+                    cbCategoryFilter.SelectedIndex = 0;
                 }
             }
             catch (Exception ex)
@@ -312,7 +315,10 @@ namespace AccountingOfEquipmentInventoryManagementApp.Views.Windows
             {
                 DateTime? startDate = dpStartDate.SelectedDate;
                 DateTime? endDate = dpEndDate.SelectedDate;
-                string categoryFilter = tbCategoryFilter.Text.Trim();
+
+                // Используем выбранную категорию из ComboBox
+                var selectedCategory = cbCategoryFilter.SelectedItem as EquipmentCategory;
+                string categoryFilter = selectedCategory != null ? selectedCategory.Name : "";
 
                 await LoadEquipmentReportAsync(categoryFilter, startDate, endDate);
             }
@@ -320,6 +326,46 @@ namespace AccountingOfEquipmentInventoryManagementApp.Views.Windows
             {
                 Debug.WriteLine("Ошибка формирования отчёта: " + ex.Message);
                 MessageBox.Show("Ошибка формирования отчёта: " + ex.Message, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+        private async void btnDeleteEquipment_Click(object sender, RoutedEventArgs e)
+        {
+            // Получаем выбранное оборудование из DataGrid
+            var selectedEquipment = ReportDataGrid.SelectedItem as Equipment;
+            if (selectedEquipment == null)
+            {
+                MessageBox.Show("Выберите оборудование для удаления.", "Информация", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            // Запрашиваем подтверждение удаления
+            var result = MessageBox.Show("Вы уверены, что хотите удалить выбранное оборудование?",
+                                         "Подтверждение удаления", MessageBoxButton.YesNo, MessageBoxImage.Question);
+            if (result != MessageBoxResult.Yes)
+            {
+                return;
+            }
+
+            try
+            {
+                var optionsBuilder = new DbContextOptionsBuilder<SqliteDbContext>();
+                using (var context = new SqliteDbContext(optionsBuilder.Options))
+                {
+                    // Если объект отсоединен от контекста, его нужно подцепить
+                    context.Equipments.Attach(selectedEquipment);
+                    context.Equipments.Remove(selectedEquipment);
+                    await context.SaveChangesAsync();
+                }
+
+                MessageBox.Show("Оборудование удалено успешно.", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
+                // Обновляем список оборудования
+                await LoadEquipmentReportAsync();
+            }
+            catch (Exception ex)
+            {
+                string errorDetails = ex.InnerException != null ? ex.InnerException.ToString() : ex.ToString();
+                Debug.WriteLine("Ошибка удаления оборудования: " + errorDetails);
+                MessageBox.Show("Ошибка удаления оборудования: " + errorDetails, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
