@@ -1,7 +1,11 @@
 ﻿<Window x:Class="AccountingOfEquipmentInventoryManagementApp.Views.Windows.OperatorWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:AccountingOfEquipmentInventoryManagementApp.ViewModels"
         Title="Оператор — Учёт оборудования" Height="600" Width="1000">
+    <Window.DataContext>
+        <local:OperatorViewModel/>
+    </Window.DataContext>
     <Grid Margin="10">
         <Grid.RowDefinitions>
             <!-- Панель фильтрации и управления -->
@@ -15,30 +19,42 @@
         <!-- Панель управления (поиск, фильтры, кнопки обновления и сброса) -->
         <StackPanel Grid.Row="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,0,10">
             <Label Content="Поиск:" VerticalAlignment="Center" Margin="5"/>
-            <TextBox x:Name="tbSearch" Width="200" Margin="5"/>
+            <TextBox Width="200" Margin="5"
+                     Text="{Binding SearchTerm, UpdateSourceTrigger=PropertyChanged}"/>
             <Label Content="Категория:" VerticalAlignment="Center" Margin="5"/>
-            <ComboBox x:Name="cbCategoryFilter" Width="150" Margin="5" DisplayMemberPath="Name"/>
-            <Button x:Name="btnSearch" Content="Найти" Width="100" Margin="5" Click="btnSearch_Click"/>
-            <Button x:Name="btnClearFilter" Content="Сбросить" Width="100" Margin="5" Click="btnClearFilter_Click"/>
-            <Button x:Name="btnRefresh" Content="Обновить данные" Width="150" Margin="5" Click="btnRefresh_Click"/>
+            <ComboBox Width="150" Margin="5"
+                      ItemsSource="{Binding Categories}"
+                      SelectedItem="{Binding SelectedCategoryFilter}"
+                      DisplayMemberPath="Name"/>
+            <Button Content="Найти" Width="100" Margin="5"
+                    Command="{Binding SearchCommand}"/>
+            <Button Content="Сбросить" Width="100" Margin="5"
+                    Command="{Binding ClearFilterCommand}"/>
+            <Button Content="Обновить данные" Width="150" Margin="5"
+                    Command="{Binding RefreshCommand}"/>
         </StackPanel>
 
         <!-- DataGrid для отображения оборудования -->
-        <DataGrid x:Name="InventoryDataGrid" Grid.Row="1" AutoGenerateColumns="False"
-              IsReadOnly="True" SelectionMode="Single" Margin="0,0,0,10">
+        <DataGrid Grid.Row="1" AutoGenerateColumns="False"
+                  IsReadOnly="True" SelectionMode="Single"
+                  Margin="0,0,0,10"
+                  ItemsSource="{Binding InventoryList}"
+                  SelectedItem="{Binding SelectedEquipment, Mode=TwoWay}">
             <DataGrid.Columns>
                 <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="60"/>
                 <DataGridTextColumn Header="Наименование" Binding="{Binding Name}" Width="*"/>
                 <DataGridTextColumn Header="Категория" Binding="{Binding Category.Name}" Width="150"/>
                 <DataGridTextColumn Header="Количество" Binding="{Binding Quantity}" Width="100"/>
-                <DataGridTextColumn Header="Дата добавления" Binding="{Binding DateAdded, StringFormat=\{0:yyyy-MM-dd\}}" Width="150"/>
+                <DataGridTextColumn Header="Дата добавления"
+                                    Binding="{Binding DateAdded, StringFormat=\{0:yyyy-MM-dd\}}"
+                                    Width="150"/>
             </DataGrid.Columns>
         </DataGrid>
 
         <!-- Статус-бар  -->
         <StatusBar Grid.Row="2">
             <StatusBarItem>
-                <TextBlock x:Name="tbStatus" Text="Готово" />
+                <TextBlock Text="{Binding Status}"/>
             </StatusBarItem>
         </StatusBar>
     </Grid>

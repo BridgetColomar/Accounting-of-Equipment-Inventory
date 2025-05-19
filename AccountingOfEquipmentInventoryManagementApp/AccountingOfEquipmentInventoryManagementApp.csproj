@@ -9,13 +9,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Assets\Styles\Controls\" />
-    <Folder Include="Assets\Images\" />
-    <Folder Include="Assets\Styles\Elements\" />
-    <Folder Include="Control\" />
-    <Folder Include="ViewModels\Windows\" />
-    <Folder Include="ViewModels\" />
-    <Folder Include="Control\" />
+    <Compile Remove="ViewModels\Windows\**" />
+    <EmbeddedResource Remove="ViewModels\Windows\**" />
+    <None Remove="ViewModels\Windows\**" />
+    <Page Remove="ViewModels\Windows\**" />
   </ItemGroup>
 
   <ItemGroup>

@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AccountingOfEquipmentInventoryManagementApp.Assets.Styles.Colors
+namespace AccountingOfEquipmentInventoryManagementApp.ViewModels
 {
-    class AppColors
+    class ManagerViewModel
     {
     }
 }
