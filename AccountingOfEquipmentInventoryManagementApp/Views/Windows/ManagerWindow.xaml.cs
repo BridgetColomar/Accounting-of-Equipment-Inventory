@@ -337,7 +337,6 @@ namespace AccountingOfEquipmentInventoryManagementApp.Views.Windows
                 MessageBox.Show("Выберите оборудование для удаления.", "Информация", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
-
             // Запрашиваем подтверждение удаления
             var result = MessageBox.Show("Вы уверены, что хотите удалить выбранное оборудование?",
                                          "Подтверждение удаления", MessageBoxButton.YesNo, MessageBoxImage.Question);
@@ -345,7 +344,6 @@ namespace AccountingOfEquipmentInventoryManagementApp.Views.Windows
             {
                 return;
             }
-
             try
             {
                 var optionsBuilder = new DbContextOptionsBuilder<SqliteDbContext>();
@@ -368,7 +366,6 @@ namespace AccountingOfEquipmentInventoryManagementApp.Views.Windows
                 MessageBox.Show("Ошибка удаления оборудования: " + errorDetails, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
-
         // Обработчик экспорта отчёта в файл (с выбором формата)
         private void btnExportCsv_Click(object sender, RoutedEventArgs e)
         {
@@ -468,7 +465,6 @@ namespace AccountingOfEquipmentInventoryManagementApp.Views.Windows
                         pdfDoc.Add(table);
                         pdfDoc.Close();
                     }
-
                     MessageBox.Show("Экспорт завершён успешно.", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
             }
@@ -478,7 +474,6 @@ namespace AccountingOfEquipmentInventoryManagementApp.Views.Windows
                 MessageBox.Show("Ошибка экспорта: " + ex.Message, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
-
         // Метод экранирования строк для экспорта в CSV
         private string EscapeCsv(string value)
         {

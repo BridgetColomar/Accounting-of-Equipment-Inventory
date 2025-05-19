@@ -1,16 +1,26 @@
 ﻿<Window x:Class="AccountingOfEquipmentInventoryManagementApp.Views.Windows.LoginWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:AccountingOfEquipmentInventoryManagementApp.ViewModels"
+        xmlns:helpers="clr-namespace:AccountingOfEquipmentInventoryManagementApp.Helpers"
         Title="Авторизация" Height="350" Width="400">
+    <Window.DataContext>
+        <local:LoginViewModel/>
+    </Window.DataContext>
     <Grid Margin="20">
         <StackPanel VerticalAlignment="Center">
             <TextBlock Text="Имя пользователя:" FontSize="14"/>
-            <TextBox x:Name="TxtUsername" Margin="0,5,0,15" Height="25"/>
+            <TextBox Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}"
+                   Margin="0,5,0,15" Height="25"/>
             <TextBlock Text="Пароль:" FontSize="14"/>
-            <PasswordBox x:Name="PwdPassword" Margin="0,5,0,15" Height="25"/>
-            <Button Content="Войти" Height="30" Width="100" HorizontalAlignment="Center" 
-              Click="BtnLogin_Click"/>
-            <Label x:Name="LblError" Foreground="Red" HorizontalAlignment="Center" Margin="0,10,0,0"/>
+            <PasswordBox Margin="0,5,0,15" Height="25"
+                       helpers:PasswordBoxHelper.BindPassword="True"
+                       helpers:PasswordBoxHelper.BoundPassword="{Binding Password, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+            <!-- Здесь привязывается команда, а не обработчик Click -->
+            <Button Content="Войти" Height="30" Width="100" HorizontalAlignment="Center"
+                  Command="{Binding LoginCommand}"/>
+            <Label Foreground="Red" HorizontalAlignment="Center" Margin="0,10,0,0"
+                 Content="{Binding ErrorMessage}"/>
         </StackPanel>
     </Grid>
 </Window>
