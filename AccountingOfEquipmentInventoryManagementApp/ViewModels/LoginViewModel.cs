@@ -76,9 +76,6 @@ namespace AccountingOfEquipmentInventoryManagementApp.ViewModels
             var employee = await _employeeService.AuthenticateEmployeeAsync(username, password);
             if (employee != null)
             {
-                MessageBox.Show($"Добро пожаловать, {employee.FullName}!",
-                    "Аутентификация успешна", MessageBoxButton.OK, MessageBoxImage.Information);
-
                 // Выбираем окно для открытия в зависимости от роли сотрудника
                 Window nextWindow = null;
                 switch (employee.AccessRole)
