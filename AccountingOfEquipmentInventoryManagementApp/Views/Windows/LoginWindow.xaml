@@ -3,24 +3,78 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:AccountingOfEquipmentInventoryManagementApp.ViewModels"
         xmlns:helpers="clr-namespace:AccountingOfEquipmentInventoryManagementApp.Helpers"
-        Title="Авторизация" Height="350" Width="400">
+        Title="Авторизация"
+        Height="350" Width="400"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        ResizeMode="NoResize">
+
     <Window.DataContext>
         <local:LoginViewModel/>
     </Window.DataContext>
-    <Grid Margin="20">
-        <StackPanel VerticalAlignment="Center">
-            <TextBlock Text="Имя пользователя:" FontSize="14"/>
-            <TextBox Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}"
-                   Margin="0,5,0,15" Height="25"/>
-            <TextBlock Text="Пароль:" FontSize="14"/>
-            <PasswordBox Margin="0,5,0,15" Height="25"
-                       helpers:PasswordBoxHelper.BindPassword="True"
-                       helpers:PasswordBoxHelper.BoundPassword="{Binding Password, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-            <!-- Здесь привязывается команда, а не обработчик Click -->
-            <Button Content="Войти" Height="30" Width="100" HorizontalAlignment="Center"
-                  Command="{Binding LoginCommand}"/>
-            <Label Foreground="Red" HorizontalAlignment="Center" Margin="0,10,0,0"
-                 Content="{Binding ErrorMessage}"/>
-        </StackPanel>
-    </Grid>
+
+    <Border CornerRadius="20"
+            Background="{StaticResource LightBrush}"
+            BorderBrush="{StaticResource PrimaryBrush}"
+            BorderThickness="1"
+            Padding="20"
+            SnapsToDevicePixels="True">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <!-- Заголовок -->
+            <TextBlock Text="Вход в систему"
+                       FontSize="22"
+                       FontWeight="Bold"
+                       Foreground="{StaticResource DarkBrush}"
+                       HorizontalAlignment="Center"
+                       Margin="0,0,0,20"/>
+
+            <!-- Контент -->
+            <StackPanel Grid.Row="1" VerticalAlignment="Center">
+
+                <TextBlock Text="Имя пользователя:" FontSize="14" Margin="0,0,0,5"/>
+                <TextBox Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}"
+                         Margin="0,0,0,15"
+                         Height="30"
+                         Padding="5"
+                         Background="{StaticResource InputBackgroundBrush}"
+                         BorderBrush="{StaticResource PrimaryBrush}"
+                         BorderThickness="1"
+                         Foreground="{StaticResource DarkBrush}"/>
+
+                <TextBlock Text="Пароль:" FontSize="14" Margin="0,0,0,5"/>
+                <PasswordBox Height="30"
+                             Margin="0,0,0,15"
+                             Padding="5"
+                             Background="{StaticResource InputBackgroundBrush}"
+                             BorderBrush="{StaticResource PrimaryBrush}"
+                             BorderThickness="1"
+                             Foreground="{StaticResource DarkBrush}"
+                             helpers:PasswordBoxHelper.BindPassword="True"
+                             helpers:PasswordBoxHelper.BoundPassword="{Binding Password, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+
+                <Button Content="Войти"
+                        Height="35"
+                        Width="150"
+                        HorizontalAlignment="Center"
+                        Command="{Binding LoginCommand}"
+                        Background="{StaticResource PrimaryBrush}"
+                        Foreground="White"
+                        BorderBrush="{StaticResource PrimaryDarkBrush}"
+                        BorderThickness="1"
+                        FontWeight="SemiBold"
+                        Cursor="Hand"/>
+
+                <Label Content="{Binding ErrorMessage}"
+                       Foreground="{StaticResource ErrorBrush}"
+                       HorizontalAlignment="Center"
+                       Margin="0,10,0,0"/>
+            </StackPanel>
+        </Grid>
+    </Border>
 </Window>
