@@ -1,7 +1,12 @@
 ﻿using AccountingOfEquipmentInventoryManagementApp.Helpers;
 using AccountingOfEquipmentInventoryManagementDbContext.Context.Connections;
+using AccountingOfEquipmentInventoryManagementDbContext.Services;
 using AccountingOfEquipmentInventoryManagementLib.Entities;
+using ClosedXML.Excel;
+using iTextSharp.text.pdf;
+using iTextSharp.text;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -18,21 +23,170 @@ namespace AccountingOfEquipmentInventoryManagementApp.ViewModels
 {
     public class ManagerViewModel : INotifyPropertyChanged
     {
+        // Коллекции
         public ObservableCollection<EquipmentCategory> EquipmentCategories { get; set; } = new();
         public ObservableCollection<string> Locations { get; set; } = new();
         public ObservableCollection<Equipment> EquipmentReport { get; set; } = new();
+
         public Array EquipmentStatuses => Enum.GetValues(typeof(EquipmentStatus));
-        public EquipmentCategory SelectedCategory { get; set; }
-        public string SelectedLocation { get; set; }
-        public EquipmentStatus SelectedStatus { get; set; }
-        public DateTime? PurchaseDate { get; set; }
 
-        public string EquipmentName { get; set; }
-        public string SerialNumber { get; set; }
-        public int EquipmentId { get; set; }
+        // Выбранные элементы и фильтры
+        private EquipmentCategory _selectedCategory;
+        public EquipmentCategory SelectedCategory
+        {
+            get => _selectedCategory;
+            set
+            {
+                if (_selectedCategory != value)
+                {
+                    _selectedCategory = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
 
-        public byte[] SelectedImageBytes { get; set; }
+        private string _selectedLocation;
+        public string SelectedLocation
+        {
+            get => _selectedLocation;
+            set
+            {
+                if (_selectedLocation != value)
+                {
+                    _selectedLocation = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
 
+        private EquipmentStatus _selectedStatus;
+        public EquipmentStatus SelectedStatus
+        {
+            get => _selectedStatus;
+            set
+            {
+                if (_selectedStatus != value)
+                {
+                    _selectedStatus = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        private EquipmentCategory _selectedReportCategory;
+        public EquipmentCategory SelectedReportCategory
+        {
+            get => _selectedReportCategory;
+            set
+            {
+                if (_selectedReportCategory != value)
+                {
+                    _selectedReportCategory = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        private DateTime? _reportStartDate;
+        public DateTime? ReportStartDate
+        {
+            get => _reportStartDate;
+            set
+            {
+                if (_reportStartDate != value)
+                {
+                    _reportStartDate = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        private DateTime? _reportEndDate;
+        public DateTime? ReportEndDate
+        {
+            get => _reportEndDate;
+            set
+            {
+                if (_reportEndDate != value)
+                {
+                    _reportEndDate = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        // Параметры для добавления оборудования
+        private string _equipmentName;
+        public string EquipmentName
+        {
+            get => _equipmentName;
+            set
+            {
+                if (_equipmentName != value)
+                {
+                    _equipmentName = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        private string _serialNumber;
+        public string SerialNumber
+        {
+            get => _serialNumber;
+            set
+            {
+                if (_serialNumber != value)
+                {
+                    _serialNumber = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        private int _equipmentId;
+        public int EquipmentId
+        {
+            get => _equipmentId;
+            set
+            {
+                if (_equipmentId != value)
+                {
+                    _equipmentId = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        private DateTime? _purchaseDate;
+        public DateTime? PurchaseDate
+        {
+            get => _purchaseDate;
+            set
+            {
+                if (_purchaseDate != value)
+                {
+                    _purchaseDate = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        private byte[] _selectedImageBytes;
+        public byte[] SelectedImageBytes
+        {
+            get => _selectedImageBytes;
+            set
+            {
+                if (_selectedImageBytes != value)
+                {
+                    _selectedImageBytes = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        // Команды
         public ICommand AddEquipmentCommand { get; }
         public ICommand LoadCategoriesCommand { get; }
         public ICommand SelectImageCommand { get; }
@@ -49,7 +203,10 @@ namespace AccountingOfEquipmentInventoryManagementApp.ViewModels
             AddCategoryCommand = new RelayCommand(async _ => await AddCategoryAsync());
             GenerateReportCommand = new RelayCommand(async _ => await LoadEquipmentReportAsync());
             DeleteEquipmentCommand = new RelayCommand(async _ => await DeleteEquipmentAsync());
-            ExportCommand = new RelayCommand(_ => ExportToFile());
+            ExportCommand = new RelayCommand(async _ =>
+            {
+                await ReportExporter.ExportToFileAsync(ReportStartDate, ReportEndDate, SelectedReportCategory?.Name);
+            });
 
             LoadDefaults();
         }
@@ -68,7 +225,7 @@ namespace AccountingOfEquipmentInventoryManagementApp.ViewModels
             var predefined = new[] { "Головной офис", "Офис 101", "Офис 102", "Склад", "Филиал" };
             foreach (var loc in predefined)
                 Locations.Add(loc);
-            SelectedLocation = Locations.FirstOrDefault();
+            SelectedLocation = Locations.Count > 0 ? Locations[0] : null;
         }
 
         private async Task LoadEquipmentCategoriesAsync()
@@ -139,24 +296,166 @@ namespace AccountingOfEquipmentInventoryManagementApp.ViewModels
 
         private void SelectImage()
         {
-            var dialog = new Microsoft.Win32.OpenFileDialog();
+            var dialog = new OpenFileDialog();
             if (dialog.ShowDialog() == true)
                 SelectedImageBytes = File.ReadAllBytes(dialog.FileName);
         }
 
         private async Task AddCategoryAsync()
         {
-            // Логика добавления новой категории (ввод через диалог и сохранение в БД)
+            // Реализуйте ввод новой категории и сохранение в БД
         }
 
         private async Task DeleteEquipmentAsync()
         {
-            // Логика удаления выбранного оборудования (по ID или другому критерию)
+            // Реализуйте удаление оборудования по ID или другому критерию
         }
 
-        private void ExportToFile()
+        public static class ReportExporter
         {
-            // Логика экспорта отчета в Excel, CSV или другой формат
+            public static async Task ExportToFileAsync(DateTime? startDate, DateTime? endDate, string categoryFilter)
+            {
+                var equipments = await ReportService.GenerateEquipmentReportAsync(startDate, endDate, categoryFilter);
+
+                var saveFileDialog = new SaveFileDialog
+                {
+                    Filter = "Excel files (*.xlsx)|*.xlsx|PDF files (*.pdf)|*.pdf|CSV files (*.csv)|*.csv",
+                    FileName = "EquipmentReport"
+                };
+
+                if (saveFileDialog.ShowDialog() != true)
+                    return;
+
+                string filePath = saveFileDialog.FileName;
+                string extension = Path.GetExtension(filePath).ToLower();
+
+                try
+                {
+                    switch (extension)
+                    {
+                        case ".xlsx":
+                            ExportToExcel(equipments, filePath);
+                            break;
+
+                        case ".pdf":
+                            ExportToPdf(equipments, filePath);
+                            break;
+
+                        case ".csv":
+                            ExportToCsv(equipments, filePath);
+                            break;
+
+                        default:
+                            throw new NotSupportedException("Неподдерживаемый формат файла.");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Ошибка при экспорте: " + ex.Message);
+                }
+            }
+
+            private static void ExportToExcel(System.Collections.Generic.List<Equipment> equipments, string filePath)
+            {
+                using var workbook = new XLWorkbook();
+                var worksheet = workbook.Worksheets.Add("Отчет");
+
+                worksheet.Cell(1, 1).Value = "ID";
+                worksheet.Cell(1, 2).Value = "Наименование";
+                worksheet.Cell(1, 3).Value = "Серийный номер";
+                worksheet.Cell(1, 4).Value = "Статус";
+                worksheet.Cell(1, 5).Value = "Категория";
+                worksheet.Cell(1, 6).Value = "Дата покупки";
+                worksheet.Cell(1, 7).Value = "Местоположение";
+
+                int row = 2;
+                foreach (var eq in equipments)
+                {
+                    worksheet.Cell(row, 1).Value = eq.Id;
+                    worksheet.Cell(row, 2).Value = eq.Name ?? "";
+                    worksheet.Cell(row, 3).Value = eq.SerialNumber ?? "";
+                    worksheet.Cell(row, 4).Value = eq.Status.ToString();
+                    worksheet.Cell(row, 5).Value = eq.Category?.Name ?? "";
+                    worksheet.Cell(row, 6).Value = eq.PurchaseDate.ToString("dd.MM.yyyy");
+                    worksheet.Cell(row, 7).Value = eq.Location ?? "";
+                    row++;
+                }
+
+                worksheet.Columns().AdjustToContents();
+                workbook.SaveAs(filePath);
+            }
+
+            private static void ExportToPdf(System.Collections.Generic.List<Equipment> equipments, string filePath)
+            {
+                using var fs = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None);
+                using var document = new Document(PageSize.A4.Rotate(), 10, 10, 10, 10);
+                PdfWriter.GetInstance(document, fs);
+                document.Open();
+
+                var titleFont = FontFactory.GetFont("Arial", 16, Font.BOLD);
+                var title = new Paragraph("Отчет по оборудованию", titleFont)
+                {
+                    Alignment = Element.ALIGN_CENTER,
+                    SpacingAfter = 20f
+                };
+                document.Add(title);
+
+                var table = new PdfPTable(7) { WidthPercentage = 100 };
+                table.SetWidths(new float[] { 5f, 20f, 15f, 10f, 15f, 15f, 15f });
+
+                var headerFont = FontFactory.GetFont("Arial", 12, Font.BOLD);
+                string[] headers = { "ID", "Наименование", "Серийный номер", "Статус", "Категория", "Дата покупки", "Местоположение" };
+                foreach (var header in headers)
+                {
+                    var cell = new PdfPCell(new Phrase(header, headerFont))
+                    {
+                        BackgroundColor = BaseColor.LIGHT_GRAY,
+                        HorizontalAlignment = Element.ALIGN_CENTER,
+                        Padding = 5
+                    };
+                    table.AddCell(cell);
+                }
+
+                var dataFont = FontFactory.GetFont("Arial", 10, Font.NORMAL);
+                foreach (var eq in equipments)
+                {
+                    table.AddCell(new PdfPCell(new Phrase(eq.Id.ToString(), dataFont)) { Padding = 5 });
+                    table.AddCell(new PdfPCell(new Phrase(eq.Name ?? "", dataFont)) { Padding = 5 });
+                    table.AddCell(new PdfPCell(new Phrase(eq.SerialNumber ?? "", dataFont)) { Padding = 5 });
+                    table.AddCell(new PdfPCell(new Phrase(eq.Status.ToString(), dataFont)) { Padding = 5 });
+                    table.AddCell(new PdfPCell(new Phrase(eq.Category?.Name ?? "", dataFont)) { Padding = 5 });
+                    table.AddCell(new PdfPCell(new Phrase(eq.PurchaseDate.ToString("dd.MM.yyyy"), dataFont)) { Padding = 5 });
+                    table.AddCell(new PdfPCell(new Phrase(eq.Location ?? "", dataFont)) { Padding = 5 });
+                }
+
+                document.Add(table);
+                document.Close();
+            }
+
+            private static void ExportToCsv(System.Collections.Generic.List<Equipment> equipments, string filePath)
+            {
+                var sb = new StringBuilder();
+                sb.AppendLine("ID,Наименование,Серийный номер,Статус,Категория,Дата покупки,Местоположение");
+
+                foreach (var eq in equipments)
+                {
+                    sb.AppendLine($"{eq.Id}," +
+                                  $"\"{EscapeCsv(eq.Name)}\"," +
+                                  $"\"{EscapeCsv(eq.SerialNumber)}\"," +
+                                  $"{eq.Status}," +
+                                  $"\"{EscapeCsv(eq.Category?.Name)}\"," +
+                                  $"{eq.PurchaseDate:dd.MM.yyyy}," +
+                                  $"\"{EscapeCsv(eq.Location)}\"");
+                }
+
+                File.WriteAllText(filePath, sb.ToString(), Encoding.UTF8);
+            }
+
+            private static string EscapeCsv(string? s)
+            {
+                if (string.IsNullOrEmpty(s)) return "";
+                return s.Replace("\"", "\"\"");
+            }
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

@@ -35,8 +35,7 @@ namespace AccountingOfEquipmentInventoryManagementApp.Views.Windows
     /// </summary>
     public partial class ManagerWindow : Window
     {
-        // Переменная для хранения выбранного изображения в виде массива байтов
-        private byte[] selectedImageBytes = null;
+       
 
         public ManagerWindow()
         {
