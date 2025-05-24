@@ -35,14 +35,10 @@ namespace AccountingOfEquipmentInventoryManagementApp.Views.Windows
     /// </summary>
     public partial class ManagerWindow : Window
     {
-       
-
         public ManagerWindow()
         {
             InitializeComponent();
             DataContext = new ManagerViewModel();
         }
-
-
     }
 }

@@ -18,18 +18,44 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
+using AccountingOfEquipmentInventoryManagementDbContext.Context;
+using DocumentFormat.OpenXml.InkML;
 
 namespace AccountingOfEquipmentInventoryManagementApp.ViewModels
 {
     public class ManagerViewModel : INotifyPropertyChanged
     {
+
+        private readonly DbController _dbController;
+
+        public ObservableCollection<Equipment> EquipmentList { get; set; } = new();
+        private Equipment _selectedEquipment;
+        public Equipment SelectedEquipment
+        {
+            get => _selectedEquipment;
+            set
+            {
+                _selectedEquipment = value;
+                OnPropertyChanged();
+            }
+        }
         // Коллекции
         public ObservableCollection<EquipmentCategory> EquipmentCategories { get; set; } = new();
         public ObservableCollection<string> Locations { get; set; } = new();
         public ObservableCollection<Equipment> EquipmentReport { get; set; } = new();
 
         public Array EquipmentStatuses => Enum.GetValues(typeof(EquipmentStatus));
+        private string _newCategoryName;
 
+        public string NewCategoryName
+        {
+            get => _newCategoryName;
+            set
+            {
+                _newCategoryName = value;
+                OnPropertyChanged(nameof(NewCategoryName));
+            }
+        }
         // Выбранные элементы и фильтры
         private EquipmentCategory _selectedCategory;
         public EquipmentCategory SelectedCategory
@@ -197,6 +223,10 @@ namespace AccountingOfEquipmentInventoryManagementApp.ViewModels
 
         public ManagerViewModel()
         {
+            var optionsBuilder = new DbContextOptionsBuilder<SqliteDbContext>();
+            var context = new SqliteDbContext(optionsBuilder.Options);
+            _dbController = new DbController(context);
+
             AddEquipmentCommand = new RelayCommand(async _ => await AddEquipmentAsync());
             LoadCategoriesCommand = new RelayCommand(async _ => await LoadEquipmentCategoriesAsync());
             SelectImageCommand = new RelayCommand(_ => SelectImage());
@@ -252,29 +282,53 @@ namespace AccountingOfEquipmentInventoryManagementApp.ViewModels
                 return;
             }
 
-            var equipment = new Equipment
+            try
             {
-                Id = EquipmentId,
-                Name = EquipmentName,
-                SerialNumber = SerialNumber,
-                Status = SelectedStatus,
-                Category = SelectedCategory,
-                PurchaseDate = PurchaseDate.Value,
-                Location = SelectedLocation,
-                Image = SelectedImageBytes
-            };
+                var optionsBuilder = new DbContextOptionsBuilder<SqliteDbContext>();
+                using var context = new SqliteDbContext(optionsBuilder.Options);
 
-            var optionsBuilder = new DbContextOptionsBuilder<SqliteDbContext>();
-            using var context = new SqliteDbContext(optionsBuilder.Options);
-            context.Equipments.Add(equipment);
-            await context.SaveChangesAsync();
+                // Получение категории из базы
+                var categoryFromDb = await context.EquipmentCategories.FirstOrDefaultAsync(c => c.Id == SelectedCategory.Id);
 
-            MessageBox.Show("Оборудование добавлено.");
-            await UpdateNextEquipmentIdAsync();
-            EquipmentName = SerialNumber = string.Empty;
-            PurchaseDate = null;
-            SelectedImageBytes = null;
-            await LoadEquipmentReportAsync();
+                if (categoryFromDb == null)
+                {
+                    MessageBox.Show("Выбранная категория не найдена в базе данных.");
+                    return;
+                }
+
+                var equipment = new Equipment
+                {
+                    Name = EquipmentName,
+                    SerialNumber = SerialNumber,
+                    Status = SelectedStatus,
+                    PurchaseDate = PurchaseDate.Value,
+                    Location = SelectedLocation,
+                    Image = SelectedImageBytes,
+                    Category = categoryFromDb
+                };
+
+                context.Equipments.Add(equipment);
+                await context.SaveChangesAsync();
+
+                MessageBox.Show("Оборудование добавлено.");
+
+                await UpdateNextEquipmentIdAsync();
+
+                // Очистка полей после добавления
+                EquipmentName = SerialNumber = string.Empty;
+                PurchaseDate = null;
+                SelectedImageBytes = null;
+
+                await LoadEquipmentReportAsync();
+            }
+            catch (DbUpdateException ex)
+            {
+                MessageBox.Show($"Ошибка при сохранении оборудования: {ex.InnerException?.Message ?? ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Произошла ошибка: {ex.Message}");
+            }
         }
 
         private async Task UpdateNextEquipmentIdAsync()
@@ -300,17 +354,73 @@ namespace AccountingOfEquipmentInventoryManagementApp.ViewModels
             if (dialog.ShowDialog() == true)
                 SelectedImageBytes = File.ReadAllBytes(dialog.FileName);
         }
-
+        private void ShowMessage(string message)
+        {
+            MessageBox.Show(message);
+        }
         private async Task AddCategoryAsync()
         {
-            // Реализуйте ввод новой категории и сохранение в БД
-        }
+            try
+            {
+                string name = NewCategoryName?.Trim();
+                if (string.IsNullOrWhiteSpace(name))
+                {
+                    ShowMessage("Введите название категории.");
+                    return;
+                }
 
+                if (EquipmentCategories.Any(c => c.Name.Equals(name, StringComparison.OrdinalIgnoreCase)))
+                {
+                    ShowMessage("Такая категория уже существует.");
+                    return;
+                }
+
+                var newCategory = new EquipmentCategory { Name = name };
+                await _dbController.AddCategoryAsync(newCategory);
+
+                EquipmentCategories.Add(newCategory); // Обновление UI
+                NewCategoryName = string.Empty;
+
+                ShowMessage("Категория успешно добавлена.");
+            }
+            catch (Exception ex)
+            {
+                ShowMessage($"Ошибка при добавлении категории: {ex.Message}");
+            }
+        }
         private async Task DeleteEquipmentAsync()
         {
-            // Реализуйте удаление оборудования по ID или другому критерию
-        }
+            try
+            {
+                if (SelectedEquipment == null)
+                {
+                    ShowMessage("Выберите оборудование для удаления.");
+                    return;
+                }
 
+                var result = MessageBox.Show(
+                    $"Вы уверены, что хотите удалить \"{SelectedEquipment.Name}\"?",
+                    "Подтверждение удаления",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Warning
+                );
+
+                if (result != MessageBoxResult.Yes)
+                    return;
+
+                await _dbController.DeleteEquipmentAsync(SelectedEquipment.Id);
+
+                EquipmentReport.Remove(SelectedEquipment);
+                EquipmentList.Remove(SelectedEquipment);
+                SelectedEquipment = null;
+
+                ShowMessage("Оборудование удалено.");
+            }
+            catch (Exception ex)
+            {
+                ShowMessage($"Ошибка при удалении оборудования: {ex.Message}");
+            }
+        }
         public static class ReportExporter
         {
             public static async Task ExportToFileAsync(DateTime? startDate, DateTime? endDate, string categoryFilter)

@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using AccountingOfEquipmentInventoryManagementLib.Entities;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -31,5 +32,20 @@ namespace AccountingOfEquipmentInventoryManagementDbContext.Context
                 Console.WriteLine($"Ошибка при миграции базы данных: {ex.Message}");
             }
         }
+        public async Task AddCategoryAsync(EquipmentCategory category)
+        {
+            _context.EquipmentCategories.Add(category);
+            await _context.SaveChangesAsync();
+        }
+        public async Task DeleteEquipmentAsync(int id)
+        {
+            var equipment = await _context.Equipments.FindAsync(id);
+            if (equipment != null)
+            {
+                _context.Equipments.Remove(equipment);
+                await _context.SaveChangesAsync();
+            }
+        }
     }
+   
 }

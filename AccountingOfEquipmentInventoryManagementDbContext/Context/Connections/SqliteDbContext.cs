@@ -48,7 +48,8 @@ namespace AccountingOfEquipmentInventoryManagementDbContext.Context.Connections
                 Debug.WriteLine($"{this.GetType().Name} connected to {fullPath}.");
             }
         }
-
+        public DbSet<Equipment> Equipments { get; set; }
+        public DbSet<EquipmentCategory> EquipmentCategories { get; set; }
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             // Настраиваем использование SQLite с полученной строкой подключения
