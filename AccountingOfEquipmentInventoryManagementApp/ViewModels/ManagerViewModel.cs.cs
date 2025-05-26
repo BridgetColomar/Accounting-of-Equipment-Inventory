@@ -20,6 +20,9 @@ using System.Windows;
 using System.Windows.Input;
 using AccountingOfEquipmentInventoryManagementDbContext.Context;
 using DocumentFormat.OpenXml.InkML;
+using System.Windows.Navigation;
+using AccountingOfEquipmentInventoryManagementApp.Views.Pages;
+using System.Windows.Controls;
 
 namespace AccountingOfEquipmentInventoryManagementApp.ViewModels
 {
@@ -27,36 +30,26 @@ namespace AccountingOfEquipmentInventoryManagementApp.ViewModels
     {
 
         private readonly DbController _dbController;
+        private readonly Frame _mainFrame;
 
         public ObservableCollection<Equipment> EquipmentList { get; set; } = new();
+        public ObservableCollection<EquipmentCategory> EquipmentCategories { get; set; } = new();
+        public ObservableCollection<string> Locations { get; set; } = new();
+        public ObservableCollection<Equipment> EquipmentReport { get; set; } = new();
+
         private Equipment _selectedEquipment;
         public Equipment SelectedEquipment
         {
             get => _selectedEquipment;
             set
             {
-                _selectedEquipment = value;
-                OnPropertyChanged();
+                if (_selectedEquipment != value)
+                {
+                    _selectedEquipment = value;
+                    OnPropertyChanged();
+                }
             }
         }
-        // Коллекции
-        public ObservableCollection<EquipmentCategory> EquipmentCategories { get; set; } = new();
-        public ObservableCollection<string> Locations { get; set; } = new();
-        public ObservableCollection<Equipment> EquipmentReport { get; set; } = new();
-
-        public Array EquipmentStatuses => Enum.GetValues(typeof(EquipmentStatus));
-        private string _newCategoryName;
-
-        public string NewCategoryName
-        {
-            get => _newCategoryName;
-            set
-            {
-                _newCategoryName = value;
-                OnPropertyChanged(nameof(NewCategoryName));
-            }
-        }
-        // Выбранные элементы и фильтры
         private EquipmentCategory _selectedCategory;
         public EquipmentCategory SelectedCategory
         {
@@ -70,7 +63,6 @@ namespace AccountingOfEquipmentInventoryManagementApp.ViewModels
                 }
             }
         }
-
         private string _selectedLocation;
         public string SelectedLocation
         {
@@ -84,8 +76,7 @@ namespace AccountingOfEquipmentInventoryManagementApp.ViewModels
                 }
             }
         }
-
-        private EquipmentStatus _selectedStatus;
+        private EquipmentStatus _selectedStatus = EquipmentStatus.Active; // По умолчанию
         public EquipmentStatus SelectedStatus
         {
             get => _selectedStatus;
@@ -98,7 +89,6 @@ namespace AccountingOfEquipmentInventoryManagementApp.ViewModels
                 }
             }
         }
-
         private EquipmentCategory _selectedReportCategory;
         public EquipmentCategory SelectedReportCategory
         {
@@ -112,7 +102,6 @@ namespace AccountingOfEquipmentInventoryManagementApp.ViewModels
                 }
             }
         }
-
         private DateTime? _reportStartDate;
         public DateTime? ReportStartDate
         {
@@ -126,7 +115,6 @@ namespace AccountingOfEquipmentInventoryManagementApp.ViewModels
                 }
             }
         }
-
         private DateTime? _reportEndDate;
         public DateTime? ReportEndDate
         {
@@ -140,8 +128,19 @@ namespace AccountingOfEquipmentInventoryManagementApp.ViewModels
                 }
             }
         }
-
-        // Параметры для добавления оборудования
+        private string _newCategoryName;
+        public string NewCategoryName
+        {
+            get => _newCategoryName;
+            set
+            {
+                if (_newCategoryName != value)
+                {
+                    _newCategoryName = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
         private string _equipmentName;
         public string EquipmentName
         {
@@ -155,7 +154,6 @@ namespace AccountingOfEquipmentInventoryManagementApp.ViewModels
                 }
             }
         }
-
         private string _serialNumber;
         public string SerialNumber
         {
@@ -169,7 +167,6 @@ namespace AccountingOfEquipmentInventoryManagementApp.ViewModels
                 }
             }
         }
-
         private int _equipmentId;
         public int EquipmentId
         {
@@ -183,7 +180,6 @@ namespace AccountingOfEquipmentInventoryManagementApp.ViewModels
                 }
             }
         }
-
         private DateTime? _purchaseDate;
         public DateTime? PurchaseDate
         {
@@ -197,7 +193,6 @@ namespace AccountingOfEquipmentInventoryManagementApp.ViewModels
                 }
             }
         }
-
         private byte[] _selectedImageBytes;
         public byte[] SelectedImageBytes
         {
@@ -211,6 +206,7 @@ namespace AccountingOfEquipmentInventoryManagementApp.ViewModels
                 }
             }
         }
+        public Array EquipmentStatuses => Enum.GetValues(typeof(EquipmentStatus));
 
         // Команды
         public ICommand AddEquipmentCommand { get; }
@@ -220,9 +216,11 @@ namespace AccountingOfEquipmentInventoryManagementApp.ViewModels
         public ICommand GenerateReportCommand { get; }
         public ICommand DeleteEquipmentCommand { get; }
         public ICommand ExportCommand { get; }
-
-        public ManagerViewModel()
+        public ICommand NavigateToCardsPageCommand { get; }
+        public ManagerViewModel(Frame mainFrame)
         {
+            _mainFrame = mainFrame;
+
             var optionsBuilder = new DbContextOptionsBuilder<SqliteDbContext>();
             var context = new SqliteDbContext(optionsBuilder.Options);
             _dbController = new DbController(context);
@@ -233,14 +231,16 @@ namespace AccountingOfEquipmentInventoryManagementApp.ViewModels
             AddCategoryCommand = new RelayCommand(async _ => await AddCategoryAsync());
             GenerateReportCommand = new RelayCommand(async _ => await LoadEquipmentReportAsync());
             DeleteEquipmentCommand = new RelayCommand(async _ => await DeleteEquipmentAsync());
-            ExportCommand = new RelayCommand(async _ =>
-            {
-                await ReportExporter.ExportToFileAsync(ReportStartDate, ReportEndDate, SelectedReportCategory?.Name);
-            });
+            ExportCommand = new RelayCommand(async _ => await ReportExporter.ExportToFileAsync(ReportStartDate, ReportEndDate, SelectedReportCategory?.Name));
+            NavigateToCardsPageCommand = new RelayCommand(NavigateToCardsPage);
 
             LoadDefaults();
         }
-
+        private void NavigateToCardsPage(object obj)
+        {
+            var cardsPage = new Views.Pages.EquipmentCardsPage();
+            _mainFrame.Navigate(cardsPage);
+        }
         private void LoadDefaults()
         {
             LoadLocations();
@@ -248,7 +248,6 @@ namespace AccountingOfEquipmentInventoryManagementApp.ViewModels
             _ = UpdateNextEquipmentIdAsync();
             _ = LoadEquipmentReportAsync();
         }
-
         private void LoadLocations()
         {
             Locations.Clear();

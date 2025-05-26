@@ -31,8 +31,12 @@ namespace AccountingOfEquipmentInventoryManagementDbContext.Context.Connections
 
             var optionsBuilder = new DbContextOptionsBuilder<SqliteDbContext>();
             optionsBuilder.UseSqlite(connectionString);
-
             return new SqliteDbContext(optionsBuilder.Options);
+
+        }
+        public SqliteDbContext CreateDbContext()
+        {
+            return CreateDbContext(Array.Empty<string>());
         }
     }
 }
