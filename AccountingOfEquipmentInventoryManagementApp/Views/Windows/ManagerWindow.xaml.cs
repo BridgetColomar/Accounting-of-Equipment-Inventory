@@ -38,7 +38,7 @@ namespace AccountingOfEquipmentInventoryManagementApp.Views.Windows
         public ManagerWindow()
         {
             InitializeComponent();
-            this.DataContext = new ManagerViewModel(MainFrame);
+            DataContext = new ManagerViewModel();
         }
     }
 }

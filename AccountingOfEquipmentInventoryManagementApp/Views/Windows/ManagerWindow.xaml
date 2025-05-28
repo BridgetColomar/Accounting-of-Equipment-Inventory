@@ -3,7 +3,12 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:AccountingOfEquipmentInventoryManagementApp.ViewModels"
         Title="Менеджер - Управление оборудованием" Height="750" Width="1100">
-    
+
+    <Window.DataContext>
+        <local:ManagerViewModel />
+        <!-- Убедитесь, что xmlns:local указывает на пространство имён, где лежит ManagerViewModel -->
+    </Window.DataContext>
+
     <Grid Margin="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -40,38 +45,45 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
+                <!-- ID оборудования (только для чтения) -->
                 <Label Grid.Row="0" Grid.Column="0" Content="ID оборудования:" Margin="5" VerticalAlignment="Center"/>
                 <TextBox Text="{Binding EquipmentId}" Grid.Row="0" Grid.Column="1" Margin="5" IsReadOnly="True"/>
 
+                <!-- Наименование и Серийный номер -->
                 <Label Grid.Row="1" Grid.Column="0" Content="Наименование:" Margin="5" VerticalAlignment="Center"/>
                 <TextBox Text="{Binding EquipmentName, UpdateSourceTrigger=PropertyChanged}" Grid.Row="1" Grid.Column="1" Margin="5"/>
                 <Label Grid.Row="1" Grid.Column="2" Content="Серийный номер:" Margin="5" VerticalAlignment="Center"/>
                 <TextBox Text="{Binding SerialNumber, UpdateSourceTrigger=PropertyChanged}" Grid.Row="1" Grid.Column="3" Margin="5"/>
 
+                <!-- Ряд 2: Статус и Категория -->
                 <Label Grid.Row="2" Grid.Column="0" Content="Статус:" Margin="5" VerticalAlignment="Center"/>
                 <ComboBox Grid.Row="2" Grid.Column="1" Margin="5" ItemsSource="{Binding EquipmentStatuses}" SelectedItem="{Binding SelectedStatus, Mode=TwoWay}" />
                 <Label Grid.Row="2" Grid.Column="2" Content="Категория:" Margin="5" VerticalAlignment="Center"/>
                 <ComboBox x:Name="cbEquipmentCategory" Grid.Row="2" Grid.Column="3" Margin="5" ItemsSource="{Binding EquipmentCategories}" SelectedItem="{Binding SelectedCategory, Mode=TwoWay}" DisplayMemberPath="Name" />
 
+                <!-- Дата покупки -->
                 <Label Grid.Row="3" Grid.Column="0" Content="Дата покупки:" Margin="5" VerticalAlignment="Center"/>
                 <DatePicker SelectedDate="{Binding PurchaseDate}" Grid.Row="3" Grid.Column="1" Margin="5"/>
 
+                <!-- Местоположение -->
                 <Label Grid.Row="4" Grid.Column="0" Content="Местоположение:" Margin="5" VerticalAlignment="Center"/>
                 <ComboBox ItemsSource="{Binding Locations}" SelectedItem="{Binding SelectedLocation}" Grid.Row="4" Grid.Column="1" Margin="5"/>
 
+                <!-- Изображение оборудования -->
                 <Label Grid.Row="5" Grid.Column="0" Content="Изображение:" Margin="5" VerticalAlignment="Center"/>
                 <Button Content="Выбрать изображение" Command="{Binding SelectImageCommand}" Grid.Row="5" Grid.Column="1" Margin="5"/>
 
+                <!-- Кнопки добавления и удаления -->
                 <Grid Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="4" Margin="5">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
 
-                    <Button Content="Добавить оборудование" Command="{Binding AddEquipmentCommand}"  Margin="0,0,10,0" HorizontalAlignment="Left" Grid.Column="0"/>
+                    <Button Content="Добавить оборудование" Command="{Binding AddEquipmentCommand}" Margin="5" HorizontalAlignment="Left" Grid.Column="0"/>
 
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Grid.Column="1">
-                        <Button Content="Удалить оборудование" Command="{Binding DeleteEquipmentCommand}"  Margin="0,0,10,0"/>
+                        <Button Content="Удалить оборудование" Command="{Binding DeleteEquipmentCommand}" Margin="5"/>
                     </StackPanel>
                 </Grid>
             </Grid>
@@ -87,30 +99,21 @@
                 <Label Content="Категория:" VerticalAlignment="Center"/>
                 <ComboBox ItemsSource="{Binding EquipmentCategories}" SelectedItem="{Binding SelectedReportCategory}" Width="120" Margin="5,0,10,0" DisplayMemberPath="Name"/>
                 <Button Content="Сформировать отчет" Command="{Binding GenerateReportCommand}" Width="140" Margin="0,0,10,0"/>
-                <Button Content="Экспорт" Command="{Binding ExportCommand}" Width="140" Margin="0,0,10,0"/>
+                <Button Content="Экспорт" Command="{Binding ExportCommand}" Width="120"/>
             </StackPanel>
         </GroupBox>
 
-        <!-- 4. TabControl с DataGrid и Frame -->
-        <Grid Grid.Row="3">
-            <TabControl>
-                <TabItem Header="Список оборудования">
-                    <DataGrid ItemsSource="{Binding EquipmentReport}" AutoGenerateColumns="False" IsReadOnly="True" SelectedItem="{Binding SelectedEquipment}">
-                        <DataGrid.Columns>
-                            <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="60"/>
-                            <DataGridTextColumn Header="Наименование" Binding="{Binding Name}" Width="*"/>
-                            <DataGridTextColumn Header="Серийный номер" Binding="{Binding SerialNumber}" Width="150"/>
-                            <DataGridTextColumn Header="Статус" Binding="{Binding Status}" Width="100"/>
-                            <DataGridTextColumn Header="Категория" Binding="{Binding Category.Name}" Width="150"/>
-                            <DataGridTextColumn Header="Дата покупки" Binding="{Binding PurchaseDate, StringFormat=\{0:dd.MM.yyyy\}}" Width="150"/>
-                            <DataGridTextColumn Header="Местоположение" Binding="{Binding Location}" Width="150"/>
-                        </DataGrid.Columns>
-                    </DataGrid>
-                </TabItem>
-                <TabItem Header="Подробнее">
-                    <Frame x:Name="MainFrame" NavigationUIVisibility="Hidden"/>
-                </TabItem>
-            </TabControl>
-        </Grid>
+        <!-- 4. DataGrid для отображения списка оборудования -->
+        <DataGrid ItemsSource="{Binding EquipmentReport}" Grid.Row="3" AutoGenerateColumns="False" IsReadOnly="True" SelectedItem="{Binding SelectedEquipment}">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="60"/>
+                <DataGridTextColumn Header="Наименование" Binding="{Binding Name}" Width="*"/>
+                <DataGridTextColumn Header="Серийный номер" Binding="{Binding SerialNumber}" Width="150"/>
+                <DataGridTextColumn Header="Статус" Binding="{Binding Status}" Width="100"/>
+                <DataGridTextColumn Header="Категория" Binding="{Binding Category.Name}" Width="150"/>
+                <DataGridTextColumn Header="Дата покупки" Binding="{Binding PurchaseDate, StringFormat=\{0:dd.MM.yyyy\}}" Width="150"/>
+                <DataGridTextColumn Header="Местоположение" Binding="{Binding Location}" Width="150"/>
+            </DataGrid.Columns>
+        </DataGrid>
     </Grid>
 </Window>
