@@ -80,10 +80,10 @@
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
 
-                    <Button Content="Добавить оборудование" Command="{Binding AddEquipmentCommand}" Margin="5" HorizontalAlignment="Left" Grid.Column="0"/>
+                    <Button Content="Добавить оборудование" Command="{Binding AddEquipmentCommand}" Width="160" Margin="0,0,10,0" HorizontalAlignment="Left" Grid.Column="0"/>
 
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Grid.Column="1">
-                        <Button Content="Удалить оборудование" Command="{Binding DeleteEquipmentCommand}" Margin="5"/>
+                        <Button Content="Удалить оборудование" Command="{Binding DeleteEquipmentCommand}" Width="160" Margin="0,0,10,0"/>
                     </StackPanel>
                 </Grid>
             </Grid>
@@ -99,7 +99,7 @@
                 <Label Content="Категория:" VerticalAlignment="Center"/>
                 <ComboBox ItemsSource="{Binding EquipmentCategories}" SelectedItem="{Binding SelectedReportCategory}" Width="120" Margin="5,0,10,0" DisplayMemberPath="Name"/>
                 <Button Content="Сформировать отчет" Command="{Binding GenerateReportCommand}" Width="140" Margin="0,0,10,0"/>
-                <Button Content="Экспорт" Command="{Binding ExportCommand}" Width="120"/>
+                <Button Content="Экспорт" Command="{Binding ExportCommand}" Width="140" Margin="0,0,10,0"/>
             </StackPanel>
         </GroupBox>
 

@@ -30,7 +30,7 @@
                     Command="{Binding SearchCommand}"/>
             <Button Content="Сбросить" Width="100" Margin="5"
                     Command="{Binding ClearFilterCommand}"/>
-            <Button Content="Обновить данные" Width="150" Margin="5"
+            <Button Content="Обновить данные" Width="140" Margin="5"
                     Command="{Binding RefreshCommand}"/>
         </StackPanel>
 
