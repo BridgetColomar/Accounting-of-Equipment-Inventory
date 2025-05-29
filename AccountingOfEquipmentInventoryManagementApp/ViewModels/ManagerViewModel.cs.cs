@@ -20,6 +20,8 @@ using System.Windows;
 using System.Windows.Input;
 using AccountingOfEquipmentInventoryManagementDbContext.Context;
 using DocumentFormat.OpenXml.InkML;
+using System.Windows.Media.Imaging;
+using AccountingOfEquipmentInventoryManagementApp.Views.Windows;
 
 namespace AccountingOfEquipmentInventoryManagementApp.ViewModels
 {
@@ -220,6 +222,7 @@ namespace AccountingOfEquipmentInventoryManagementApp.ViewModels
         public ICommand GenerateReportCommand { get; }
         public ICommand DeleteEquipmentCommand { get; }
         public ICommand ExportCommand { get; }
+        public ICommand ViewImageCommand { get; }
 
         public ManagerViewModel()
         {
@@ -237,7 +240,7 @@ namespace AccountingOfEquipmentInventoryManagementApp.ViewModels
             {
                 await ReportExporter.ExportToFileAsync(ReportStartDate, ReportEndDate, SelectedReportCategory?.Name);
             });
-
+            ViewImageCommand = new RelayCommand(OnViewImage, param => param is byte[]);
             LoadDefaults();
         }
 
@@ -248,7 +251,15 @@ namespace AccountingOfEquipmentInventoryManagementApp.ViewModels
             _ = UpdateNextEquipmentIdAsync();
             _ = LoadEquipmentReportAsync();
         }
-
+        private void OnViewImage(object parameter)
+        {
+            if (parameter is byte[] imageData && imageData.Length > 0)
+            {
+                // Открываем окно с изображением, передаем байтовый массив в конструктор.
+                var imageWindow = new ImageWindow(imageData);
+                imageWindow.ShowDialog();
+            }
+        }
         private void LoadLocations()
         {
             Locations.Clear();

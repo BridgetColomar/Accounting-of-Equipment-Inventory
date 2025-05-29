@@ -113,6 +113,18 @@
                 <DataGridTextColumn Header="Категория" Binding="{Binding Category.Name}" Width="150"/>
                 <DataGridTextColumn Header="Дата покупки" Binding="{Binding PurchaseDate, StringFormat=\{0:dd.MM.yyyy\}}" Width="150"/>
                 <DataGridTextColumn Header="Местоположение" Binding="{Binding Location}" Width="150"/>
+                <!-- Добавляем новый столбец для показа кнопки с изображением -->
+                <DataGridTemplateColumn Header="Изображение" Width="100">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Button Content="Просмотр" 
+                             HorizontalAlignment="Center"
+                             VerticalAlignment="Center"
+                             Command="{Binding DataContext.ViewImageCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                             CommandParameter="{Binding Image}" />
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
             </DataGrid.Columns>
         </DataGrid>
     </Grid>
