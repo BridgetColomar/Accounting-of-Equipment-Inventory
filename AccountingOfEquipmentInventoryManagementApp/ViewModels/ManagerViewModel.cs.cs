@@ -353,11 +353,25 @@ namespace AccountingOfEquipmentInventoryManagementApp.ViewModels
         {
             var optionsBuilder = new DbContextOptionsBuilder<SqliteDbContext>();
             using var context = new SqliteDbContext(optionsBuilder.Options);
-            var report = await context.Equipments.Include(e => e.Category).ToListAsync();
+
+            var query = context.Equipments.Include(e => e.Category).AsQueryable();
+
+            if (ReportStartDate.HasValue)
+                query = query.Where(e => e.PurchaseDate >= ReportStartDate.Value);
+
+            if (ReportEndDate.HasValue)
+                query = query.Where(e => e.PurchaseDate <= ReportEndDate.Value);
+
+            if (SelectedReportCategory != null)
+                query = query.Where(e => e.Category.Id == SelectedReportCategory.Id);
+
+            var filteredReport = await query.ToListAsync();
+
             EquipmentReport.Clear();
-            foreach (var equipment in report)
+            foreach (var equipment in filteredReport)
                 EquipmentReport.Add(equipment);
         }
+
 
         private void SelectImage()
         {
