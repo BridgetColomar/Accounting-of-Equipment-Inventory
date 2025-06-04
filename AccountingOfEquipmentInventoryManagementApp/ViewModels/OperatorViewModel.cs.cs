@@ -23,6 +23,7 @@ namespace AccountingOfEquipmentInventoryManagementApp.ViewModels
 {
     public class OperatorViewModel : INotifyPropertyChanged
     {
+        public WindowControlViewModel WindowControls { get; } = new();
         #region Свойства привязки
 
         private string _searchTerm;

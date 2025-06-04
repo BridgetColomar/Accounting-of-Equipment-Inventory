@@ -27,7 +27,7 @@ namespace AccountingOfEquipmentInventoryManagementApp.ViewModels
 {
     public class ManagerViewModel : INotifyPropertyChanged
     {
-
+        public WindowControlViewModel WindowControls { get; } = new();
         private readonly DbController _dbController;
 
         public ObservableCollection<Equipment> EquipmentList { get; set; } = new();

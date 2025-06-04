@@ -6,18 +6,16 @@
 
     <Window.DataContext>
         <local:ManagerViewModel />
-        <!-- Убедитесь, что xmlns:local указывает на пространство имён, где лежит ManagerViewModel -->
     </Window.DataContext>
-
-    <Grid Margin="10">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
-        </Grid.RowDefinitions>
-
-        <!-- 1. Добавление новой категории оборудования -->
+    <Grid>
+        <Grid Margin="10">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            <!-- 1. Добавление новой категории оборудования -->
         <GroupBox Header="Добавление новой категории оборудования" Grid.Row="0" Margin="0,0,0,10">
             <StackPanel Orientation="Horizontal" Margin="10">
                 <Label Content="Название категории:" VerticalAlignment="Center" Margin="5"/>
@@ -25,8 +23,27 @@
                 <Button Content="Создать категорию" Width="160" Margin="5" Command="{Binding AddCategoryCommand}"/>
             </StackPanel>
         </GroupBox>
-
-        <!-- 2. Добавить оборудование -->
+            <Grid>
+                <StackPanel Orientation="Horizontal"
+        HorizontalAlignment="Right"
+        VerticalAlignment="Top"
+        Margin="0,5,5,0"
+        Panel.ZIndex="999">
+                    <Button Width="30" Height="30" Content="−"
+        Command="{Binding WindowControls.MinimizeCommand}"
+        CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}"
+        ToolTip="Свернуть"/>
+                    <Button Width="30" Height="30" Content="☐"
+        Command="{Binding WindowControls.MaximizeCommand}"
+        CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}"
+        ToolTip="Развернуть"/>
+                    <Button Width="30" Height="30" Content="✖"
+        Command="{Binding WindowControls.CloseCommand}"
+        CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}"
+        ToolTip="Закрыть"/>
+                </StackPanel>
+            </Grid>
+            <!-- 2. Добавить оборудование -->
         <GroupBox Header="Добавить оборудование" Grid.Row="1" Margin="0,0,0,10">
             <Grid>
                 <Grid.ColumnDefinitions>
@@ -44,7 +61,7 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
-
+               
                 <!-- ID оборудования (только для чтения) -->
                 <Label Grid.Row="0" Grid.Column="0" Content="ID оборудования:" Margin="5" VerticalAlignment="Center"/>
                 <TextBox Text="{Binding EquipmentId}" Grid.Row="0" Grid.Column="1" Margin="5" IsReadOnly="True"/>
@@ -104,7 +121,7 @@
         </GroupBox>
 
         <!-- 4. DataGrid для отображения списка оборудования -->
-        <DataGrid ItemsSource="{Binding EquipmentReport}" Grid.Row="3" AutoGenerateColumns="False" IsReadOnly="True" SelectedItem="{Binding SelectedEquipment}">
+        <DataGrid ItemsSource="{Binding EquipmentReport}" Grid.Row="3" AutoGenerateColumns="False" IsReadOnly="True" SelectedItem="{Binding SelectedEquipment}" Cursor="">
             <DataGrid.Columns>
                 <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="60"/>
                 <DataGridTextColumn Header="Наименование" Binding="{Binding Name}" Width="*"/>
@@ -127,5 +144,6 @@
                 </DataGridTemplateColumn>
             </DataGrid.Columns>
         </DataGrid>
+    </Grid>
     </Grid>
 </Window>

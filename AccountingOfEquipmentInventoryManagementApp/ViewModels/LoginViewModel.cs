@@ -16,6 +16,7 @@ namespace AccountingOfEquipmentInventoryManagementApp.ViewModels
 {
     public class LoginViewModel : INotifyPropertyChanged
     {
+        public WindowControlViewModel WindowControls { get; } = new();
         private readonly IEmployeeService _employeeService;
         private readonly IServiceProvider _serviceProvider;
 
