@@ -58,6 +58,7 @@
                 <Button Content="Найти" Width="100" Margin="5" Command="{Binding SearchCommand}"/>
                 <Button Content="Сбросить" Width="100" Margin="5" Command="{Binding ClearFilterCommand}"/>
                 <Button Content="Обновить данные" Width="140" Margin="5" Command="{Binding RefreshCommand}"/>
+                <Button Content="Экспорт" Command="{Binding ExportCommand}" Width="100" Margin="0,5,5,5"/>
             </StackPanel>
 
             <!-- Таблица -->

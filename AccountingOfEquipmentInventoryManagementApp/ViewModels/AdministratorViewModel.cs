@@ -18,6 +18,8 @@ namespace AccountingOfEquipmentInventoryManagementApp.ViewModels
 {
     public class AdministratorViewModel : INotifyPropertyChanged
     {
+
+        public WindowControlViewModel WindowControls { get; } = new();
         public ObservableCollection<Role> Roles { get; } = new ObservableCollection<Role>(Enum.GetValues(typeof(Role)).Cast<Role>());
         private ObservableCollection<Employee> _employees = new ObservableCollection<Employee>();
         public ObservableCollection<Employee> Employees
@@ -40,7 +42,7 @@ namespace AccountingOfEquipmentInventoryManagementApp.ViewModels
                     FullName = _selectedEmployee.FullName;
                     Username = _selectedEmployee.Username;
                     SelectedRole = _selectedEmployee.AccessRole;
-                    Password = string.Empty; // Не раскрываем пароль
+                    Password = string.Empty; 
                 }
             }
         }

@@ -18,14 +18,16 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
+using DocumentFormat.OpenXml.ExtendedProperties;
 
 namespace AccountingOfEquipmentInventoryManagementApp.ViewModels
 {
     public class OperatorViewModel : INotifyPropertyChanged
     {
-        public WindowControlViewModel WindowControls { get; } = new();
-        #region Свойства привязки
 
+        #region Свойства привязки
+        public ManagerViewModel ManagerVM { get; }
+        public WindowControlViewModel WindowControls { get; } = new();
         private string _searchTerm;
         public string SearchTerm
         {
@@ -89,7 +91,10 @@ namespace AccountingOfEquipmentInventoryManagementApp.ViewModels
             _ = LoadCategoryFilterAsync();
             _ = LoadInventoryAsync();
         }
-
+        public OperatorViewModel(ManagerViewModel managerVM)
+        {
+            ManagerVM = managerVM;
+        }
         #endregion
 
         #region Методы загрузки данных
