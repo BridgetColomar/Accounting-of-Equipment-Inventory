@@ -23,10 +23,15 @@ namespace AccountingOfEquipmentInventoryManagementApp.Views.Windows
     /// </summary>
     public partial class LoginWindow : Window
     {
+        private void CustomTitleBar_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.ChangedButton == MouseButton.Left)
+                this.DragMove();
+        }
         public LoginWindow()
         {
             InitializeComponent();
-
+            
             // Если окно создаётся через DI, то DataContext будет задан из DI-контейнера
             var vm = new LoginViewModel();
             vm.RequestClose = () => this.Close();

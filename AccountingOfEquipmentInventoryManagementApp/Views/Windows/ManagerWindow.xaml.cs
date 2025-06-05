@@ -35,6 +35,11 @@ namespace AccountingOfEquipmentInventoryManagementApp.Views.Windows
     /// </summary>
     public partial class ManagerWindow : Window
     {
+        private void CustomTitleBar_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.ChangedButton == MouseButton.Left)
+                this.DragMove();
+        }
         public ManagerWindow()
         {
             InitializeComponent();

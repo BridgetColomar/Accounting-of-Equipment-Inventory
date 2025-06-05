@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:AccountingOfEquipmentInventoryManagementApp.ViewModels"
         Title="Оператор" Height="600" Width="1000"
-        WindowStyle="None" AllowsTransparency="True" Background="White">
+        WindowStyle="None" AllowsTransparency="True"  Background="White">
 
     <Window.DataContext>
         <local:OperatorViewModel/>
@@ -18,25 +18,27 @@
         </Grid.RowDefinitions>
 
         <!-- Панель кнопок управления окном -->
-        <StackPanel Orientation="Horizontal"
+        <Grid  Height="30" VerticalAlignment="Top" MouseLeftButtonDown="CustomTitleBar_MouseLeftButtonDown">
+            <StackPanel Orientation="Horizontal"
                     HorizontalAlignment="Left"
                     VerticalAlignment="Center"
                     Margin="875,0,0,0"
                     Grid.Row="0"
                     Panel.ZIndex="999" Height="40">
-            <Button Width="30" Height="30" Content="−"
+                <Button Width="30" Height="30" Content="−"
                     Command="{Binding WindowControls.MinimizeCommand}"
                     CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}"
                     ToolTip="Свернуть"/>
-            <Button Width="30" Height="30" Content="☐"
+                <Button Width="30" Height="30" Content="☐"
                     Command="{Binding WindowControls.MaximizeCommand}"
                     CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}"
                     ToolTip="Развернуть"/>
-            <Button Width="30" Height="30" Content="✖"
+                <Button Width="30" Height="30" Content="✖"
                     Command="{Binding WindowControls.CloseCommand}"
                     CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}"
                     ToolTip="Закрыть"/>
-        </StackPanel>
+            </StackPanel>
+        </Grid>
 
         <!-- Основной контент -->
         <Grid Grid.Row="1" Margin="10">

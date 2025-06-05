@@ -40,6 +40,9 @@ namespace AccountingOfEquipmentInventoryManagementApp.ViewModels
                 if (window != null)
                     window.Close();
             });
+
+           
         }
+        
     }
 }

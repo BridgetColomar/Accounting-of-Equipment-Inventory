@@ -1,5 +1,6 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using AccountingOfEquipmentInventoryManagementApp.ViewModels;
 namespace AccountingOfEquipmentInventoryManagementApp.Views.Windows
 {
@@ -8,6 +9,11 @@ namespace AccountingOfEquipmentInventoryManagementApp.Views.Windows
     /// </summary>
     public partial class AdministratorWindow : Window
     {
+        private void CustomTitleBar_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.ChangedButton == MouseButton.Left)
+                this.DragMove();
+        }
         public AdministratorWindow()
         {
             InitializeComponent();

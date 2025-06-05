@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:helpers="clr-namespace:AccountingOfEquipmentInventoryManagementApp.Helpers"
         Title="Администратор" Height="750" Width="1245"
-        WindowStyle="None" AllowsTransparency="True" Background="White">
+        WindowStyle="None" AllowsTransparency="True">
 
     <Grid>
         <Grid.RowDefinitions>
@@ -12,8 +12,8 @@
             <RowDefinition Height="*"/>
             <!-- Основной контент -->
         </Grid.RowDefinitions>
-
-        <!-- Верхняя панель управления окном -->
+        <Grid  Height="30" VerticalAlignment="Top" MouseLeftButtonDown="CustomTitleBar_MouseLeftButtonDown">
+            <!-- Верхняя панель управления окном -->
         <StackPanel Orientation="Horizontal"
                     HorizontalAlignment="Left"
                     VerticalAlignment="Center"
@@ -32,8 +32,8 @@
                     CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}"
                     ToolTip="Закрыть"/>
         </StackPanel>
-
-        <!-- Основной контент -->
+    </Grid>
+    <!-- Основной контент -->
         <Grid Grid.Row="1" Margin="10">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
