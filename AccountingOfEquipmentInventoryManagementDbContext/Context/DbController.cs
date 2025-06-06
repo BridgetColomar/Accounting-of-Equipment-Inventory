@@ -1,4 +1,6 @@
-﻿using AccountingOfEquipmentInventoryManagementLib.Entities;
+﻿using AccountingOfEquipmentInventoryManagementDbContext.Context.Connections;
+using AccountingOfEquipmentInventoryManagementDbContext.Services;
+using AccountingOfEquipmentInventoryManagementLib.Entities;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -10,11 +12,13 @@ namespace AccountingOfEquipmentInventoryManagementDbContext.Context
 {
     public class DbController
     {
-        private readonly AppDbContext _context;
+        private readonly SqliteDbContext _context;
+        private readonly EquipmentService _equipmentService;
 
-        public DbController(AppDbContext context)
+        public DbController(SqliteDbContext context)
         {
-            _context = context;
+            _context = context ?? throw new ArgumentNullException(nameof(context));
+            _equipmentService = new EquipmentService(_context);
         }
 
         /// <summary>
@@ -32,20 +36,75 @@ namespace AccountingOfEquipmentInventoryManagementDbContext.Context
                 Console.WriteLine($"Ошибка при миграции базы данных: {ex.Message}");
             }
         }
+
+        /// <summary>
+        /// Добавляет новую категорию оборудования и сохраняет изменения в БД.
+        /// </summary>
         public async Task AddCategoryAsync(EquipmentCategory category)
         {
-            _context.EquipmentCategories.Add(category);
+            if (category == null)
+                throw new ArgumentNullException(nameof(category));
+
+            await _context.EquipmentCategories.AddAsync(category);
             await _context.SaveChangesAsync();
         }
+
+        /// <summary>
+        /// Удаляет оборудование по его ID и сохраняет изменения в БД.
+        /// </summary>
         public async Task DeleteEquipmentAsync(int id)
         {
             var equipment = await _context.Equipments.FindAsync(id);
-            if (equipment != null)
-            {
-                _context.Equipments.Remove(equipment);
-                await _context.SaveChangesAsync();
-            }
+            if (equipment == null)
+                return;
+
+            _context.Equipments.Remove(equipment);
+            await _context.SaveChangesAsync();
         }
+
+        /// <summary>
+        /// Добавляет новое оборудование с учетом бизнес-логики и сохраняет в БД.
+        /// </summary>
+        public async Task AddEquipmentAsync(Equipment equipment)
+        {
+            if (equipment == null)
+                throw new ArgumentNullException(nameof(equipment));
+
+            // При необходимости: дополнительная валидация или иная бизнес-логика
+            await _context.Equipments.AddAsync(equipment);
+            await _context.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// Обновляет данные существующего оборудования и сохраняет изменения в БД.
+        /// </summary>
+        public async Task UpdateEquipmentAsync(Equipment equipment)
+        {
+            if (equipment == null)
+                throw new ArgumentNullException(nameof(equipment));
+
+            _context.Equipments.Update(equipment);
+            await _context.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// Возвращает список всех категорий оборудования.
+        /// </summary>
+        public async Task<List<EquipmentCategory>> GetAllCategoriesAsync()
+        {
+            return await _context.EquipmentCategories.ToListAsync();
+        }
+
+        /// <summary>
+        /// Возвращает список всего оборудования.
+        /// </summary>
+        public async Task<List<Equipment>> GetAllEquipmentsAsync()
+        {
+            return await _context.Equipments
+                .Include(e => e.Category) // подключаем категорию, если нужна привязка
+                .ToListAsync();
+        }
+
     }
-   
+
 }

@@ -27,6 +27,7 @@ namespace AccountingOfEquipmentInventoryManagementApp.ViewModels
 {
     public class ManagerViewModel : INotifyPropertyChanged
     {
+        private readonly EquipmentService _equipmentService;
         public WindowControlViewModel WindowControls { get; } = new();
         private readonly DbController _dbController;
 
@@ -226,8 +227,7 @@ namespace AccountingOfEquipmentInventoryManagementApp.ViewModels
 
         public ManagerViewModel()
         {
-            var optionsBuilder = new DbContextOptionsBuilder<SqliteDbContext>();
-            var context = new SqliteDbContext(optionsBuilder.Options);
+            var context = new SqliteDbContextFactory().CreateDbContext(Array.Empty<string>());
             _dbController = new DbController(context);
 
             AddEquipmentCommand = new RelayCommand(async _ => await AddEquipmentAsync());
@@ -241,6 +241,7 @@ namespace AccountingOfEquipmentInventoryManagementApp.ViewModels
                 await ReportExporter.ExportToFileAsync(ReportStartDate, ReportEndDate, SelectedReportCategory?.Name);
             });
             ViewImageCommand = new RelayCommand(OnViewImage, param => param is byte[]);
+
             LoadDefaults();
         }
 
@@ -413,25 +414,26 @@ namespace AccountingOfEquipmentInventoryManagementApp.ViewModels
                 ShowMessage($"Ошибка при добавлении категории: {ex.Message}");
             }
         }
+
         private async Task DeleteEquipmentAsync()
         {
             try
             {
-                // Проверяем, выбран ли объект для удаления.
+                // Проверяем, выбрано ли оборудование для удаления
                 if (SelectedEquipment == null)
                 {
                     ShowMessage("Выберите оборудование для удаления.");
                     return;
                 }
 
-                // Если контроллер работы с БД не инициализирован, выдаем соответствующее сообщение.
+                // Проверяем, что контроллер работы с БД инициализирован
                 if (_dbController == null)
                 {
                     ShowMessage("Ошибка: контроллер базы данных не инициализирован.");
                     return;
                 }
 
-                // Запрашиваем у пользователя подтверждение удаления.
+                // Подтверждение удаления у пользователя
                 var result = MessageBox.Show(
                     $"Вы уверены, что хотите удалить \"{SelectedEquipment.Name}\"?",
                     "Подтверждение удаления",
@@ -442,19 +444,17 @@ namespace AccountingOfEquipmentInventoryManagementApp.ViewModels
                 if (result != MessageBoxResult.Yes)
                     return;
 
-                // Выполняем асинхронное удаление оборудования из базы данных.
+                // Удаление из базы данных по ID
                 await _dbController.DeleteEquipmentAsync(SelectedEquipment.Id);
 
-                // Удаляем объект из коллекций, если они не равны null.
-                if (EquipmentReport != null)
-                    EquipmentReport.Remove(SelectedEquipment);
-                if (EquipmentList != null)
-                    EquipmentList.Remove(SelectedEquipment);
+                // Удаление из коллекций
+                EquipmentReport?.Remove(SelectedEquipment);
+                EquipmentList?.Remove(SelectedEquipment);
 
-                // Обнуляем выбранное оборудование, чтобы сбросить выделение.
+                // Сброс выделенного оборудования
                 SelectedEquipment = null;
 
-                ShowMessage("Оборудование удалено.");
+                ShowMessage("Оборудование успешно удалено.");
             }
             catch (Exception ex)
             {
