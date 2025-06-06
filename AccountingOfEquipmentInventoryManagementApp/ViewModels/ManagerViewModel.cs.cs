@@ -417,12 +417,21 @@ namespace AccountingOfEquipmentInventoryManagementApp.ViewModels
         {
             try
             {
+                // Проверяем, выбран ли объект для удаления.
                 if (SelectedEquipment == null)
                 {
                     ShowMessage("Выберите оборудование для удаления.");
                     return;
                 }
 
+                // Если контроллер работы с БД не инициализирован, выдаем соответствующее сообщение.
+                if (_dbController == null)
+                {
+                    ShowMessage("Ошибка: контроллер базы данных не инициализирован.");
+                    return;
+                }
+
+                // Запрашиваем у пользователя подтверждение удаления.
                 var result = MessageBox.Show(
                     $"Вы уверены, что хотите удалить \"{SelectedEquipment.Name}\"?",
                     "Подтверждение удаления",
@@ -433,10 +442,16 @@ namespace AccountingOfEquipmentInventoryManagementApp.ViewModels
                 if (result != MessageBoxResult.Yes)
                     return;
 
+                // Выполняем асинхронное удаление оборудования из базы данных.
                 await _dbController.DeleteEquipmentAsync(SelectedEquipment.Id);
 
-                EquipmentReport.Remove(SelectedEquipment);
-                EquipmentList.Remove(SelectedEquipment);
+                // Удаляем объект из коллекций, если они не равны null.
+                if (EquipmentReport != null)
+                    EquipmentReport.Remove(SelectedEquipment);
+                if (EquipmentList != null)
+                    EquipmentList.Remove(SelectedEquipment);
+
+                // Обнуляем выбранное оборудование, чтобы сбросить выделение.
                 SelectedEquipment = null;
 
                 ShowMessage("Оборудование удалено.");
