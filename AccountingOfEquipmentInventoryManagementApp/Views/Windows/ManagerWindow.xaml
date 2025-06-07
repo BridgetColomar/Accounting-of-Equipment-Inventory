@@ -8,6 +8,26 @@
         <local:ManagerViewModel />
     </Window.DataContext>
     <Grid>
+        <Grid  Height="48" VerticalAlignment="Top" MouseLeftButtonDown="CustomTitleBar_MouseLeftButtonDown">
+            <StackPanel Orientation="Horizontal"
+HorizontalAlignment="Right"
+VerticalAlignment="Top"
+Margin="0,5,5,0"
+Panel.ZIndex="999">
+                <Button Width="30" Height="30" Content="−"
+Command="{Binding WindowControls.MinimizeCommand}"
+CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}"
+ToolTip="Свернуть"/>
+                <Button Width="30" Height="30" Content="☐"
+Command="{Binding WindowControls.MaximizeCommand}"
+CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}"
+ToolTip="Развернуть"/>
+                <Button Width="30" Height="30" Content="✖"
+Command="{Binding WindowControls.CloseCommand}"
+CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}"
+ToolTip="Закрыть"/>
+            </StackPanel>
+        </Grid>
         <Grid Margin="10">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
@@ -16,33 +36,14 @@
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
             <!-- 1. Добавление новой категории оборудования -->
-        <GroupBox Header="Добавление новой категории оборудования" Grid.Row="0" Margin="0,0,0,10">
+        <GroupBox Header="Добавление новой категории оборудования" Grid.Row="0" Margin="0,23,0,10">
             <StackPanel Orientation="Horizontal" Margin="10">
                 <Label Content="Название категории:" VerticalAlignment="Center" Margin="5"/>
                 <TextBox Text="{Binding NewCategoryName, UpdateSourceTrigger=PropertyChanged}" Width="200" Margin="5"/>
                 <Button Content="Создать категорию" Width="160" Margin="5" Command="{Binding AddCategoryCommand}"/>
             </StackPanel>
         </GroupBox>
-            <Grid  Height="48" VerticalAlignment="Top" MouseLeftButtonDown="CustomTitleBar_MouseLeftButtonDown">
-                <StackPanel Orientation="Horizontal"
-        HorizontalAlignment="Right"
-        VerticalAlignment="Top"
-        Margin="0,5,5,0"
-        Panel.ZIndex="999">
-                    <Button Width="30" Height="30" Content="−"
-        Command="{Binding WindowControls.MinimizeCommand}"
-        CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}"
-        ToolTip="Свернуть"/>
-                    <Button Width="30" Height="30" Content="☐"
-        Command="{Binding WindowControls.MaximizeCommand}"
-        CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}"
-        ToolTip="Развернуть"/>
-                    <Button Width="30" Height="30" Content="✖"
-        Command="{Binding WindowControls.CloseCommand}"
-        CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}"
-        ToolTip="Закрыть"/>
-                </StackPanel>
-            </Grid>
+           
             <!-- 2. Добавить оборудование -->
         <GroupBox Header="Добавить оборудование" Grid.Row="1" Margin="0,0,0,10">
             <Grid>
