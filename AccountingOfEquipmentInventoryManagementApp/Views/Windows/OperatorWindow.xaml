@@ -65,18 +65,32 @@
 
             <!-- Таблица -->
             <DataGrid Grid.Row="1" AutoGenerateColumns="False"
-                      IsReadOnly="True" SelectionMode="Single"
-                      Margin="0,0,0,10"
-                      ItemsSource="{Binding InventoryList}"
-                      SelectedItem="{Binding SelectedEquipment, Mode=TwoWay}">
+          IsReadOnly="True" SelectionMode="Single"
+          Margin="0,0,0,10"
+          ItemsSource="{Binding InventoryList}"
+          SelectedItem="{Binding SelectedEquipment, Mode=TwoWay}">
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="60"/>
                     <DataGridTextColumn Header="Наименование" Binding="{Binding Name}" Width="*"/>
+                    <DataGridTextColumn Header="Серийный номер" Binding="{Binding SerialNumber}" Width="150"/>
+                    <DataGridTextColumn Header="Статус" Binding="{Binding Status}" Width="100"/>
                     <DataGridTextColumn Header="Категория" Binding="{Binding Category.Name}" Width="150"/>
-                    <DataGridTextColumn Header="Количество" Binding="{Binding Quantity}" Width="100"/>
-                    <DataGridTextColumn Header="Дата добавления" Binding="{Binding DateAdded, StringFormat=\{0:yyyy-MM-dd\}}" Width="150"/>
+                    <DataGridTextColumn Header="Дата покупки" Binding="{Binding PurchaseDate, StringFormat=\{0:dd.MM.yyyy\}}" Width="150"/>
+                    <DataGridTextColumn Header="Местоположение" Binding="{Binding Location}" Width="150"/>
+                    <DataGridTemplateColumn Header="Изображение" Width="100">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Button Content="Просмотр"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Command="{Binding DataContext.ViewImageCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                            CommandParameter="{Binding Image}" />
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
                 </DataGrid.Columns>
             </DataGrid>
+
 
             <!-- Статус-бар -->
             <StatusBar Grid.Row="2">

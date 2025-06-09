@@ -19,6 +19,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using DocumentFormat.OpenXml.ExtendedProperties;
+using AccountingOfEquipmentInventoryManagementApp.Views.Windows;
 
 namespace AccountingOfEquipmentInventoryManagementApp.ViewModels
 {
@@ -66,7 +67,7 @@ namespace AccountingOfEquipmentInventoryManagementApp.ViewModels
         #endregion
 
         #region Команды
-
+        public ICommand ViewImageCommand { get; }
         public ICommand SearchCommand { get; }
         public ICommand ClearFilterCommand { get; }
         public ICommand RefreshCommand { get; }
@@ -86,6 +87,16 @@ namespace AccountingOfEquipmentInventoryManagementApp.ViewModels
                 await LoadInventoryAsync();
             });
             RefreshCommand = new RelayCommand(async (o) => await LoadInventoryAsync(SearchTerm, SelectedCategoryFilter?.Name));
+
+            // Инициализация команды просмотра изображения
+            ViewImageCommand = new RelayCommand(o =>
+            {
+                if (o is byte[] imageData && imageData.Length > 0)
+                {
+                    var imageWindow = new ImageWindow(imageData);
+                    imageWindow.ShowDialog();
+                }
+            });
 
             // Одновременно загружаем категории и данные
             _ = LoadCategoryFilterAsync();
@@ -156,8 +167,16 @@ namespace AccountingOfEquipmentInventoryManagementApp.ViewModels
                 Status = $"Ошибка загрузки данных: {ex.Message}";
             }
         }
-
+        private void ViewImage(byte[] imageData)
+        {
+            if (imageData != null && imageData.Length > 0)
+            {
+                var imageWindow = new ImageWindow(imageData);
+                imageWindow.ShowDialog();
+            }
+        }
         #endregion
+
 
         #region Реализация INotifyPropertyChanged
 
@@ -166,5 +185,6 @@ namespace AccountingOfEquipmentInventoryManagementApp.ViewModels
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
         #endregion
+
     }
 }
