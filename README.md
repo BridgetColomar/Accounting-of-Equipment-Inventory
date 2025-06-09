@@ -2,7 +2,14 @@
 # 📦 Equipment Inventory Management Module
 
 **Модуль учета инвентаризации оборудования** предназначен для автоматизации учёта, контроля состояния, перемещений и инвентаризации оборудования на предприятии.  
-Разработан с использованием **C#**, **.NET**, **WPF**, **SQLite** и **Microsoft SQL Server**.
+## 🛠️ Используемые технологии
+
+![C#](https://img.shields.io/badge/C%23-239120?style=flat&logo=c-sharp&logoColor=white)
+![.NET](https://img.shields.io/badge/.NET-512BD4?style=flat&logo=dotnet&logoColor=white)
+![WPF](https://img.shields.io/badge/WPF-5C2D91?style=flat&logo=windows&logoColor=white)
+![Entity Framework Core](https://img.shields.io/badge/EF_Core-6DB33F?style=flat&logo=dotnet&logoColor=white)
+![SQLite](https://img.shields.io/badge/SQLite-003B57?style=flat&logo=sqlite&logoColor=white)
+![Visual Studio](https://img.shields.io/badge/Visual%20Studio-5C2D91?style=flat&logo=visual-studio&logoColor=white)
 
 ---
 
